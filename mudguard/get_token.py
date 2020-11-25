@@ -13,7 +13,10 @@ import json
 # the code will be present inside the URL after authorization
 # Note: the code can only by used once, so you need to do the auth step above each time you run this script
 
-with open('strava_secret.json') as secret:
+token_file = 'tokens/strava_tokens.json'
+secret_file = 'tokens/strava_secret.json'
+
+with open(token_file) as secret:
   secrets = json.load(secret)
 
 
@@ -29,13 +32,13 @@ response = requests.post(
 
 #Save json response as a variable
 strava_tokens = response.json()# Save tokens to file
-with open('strava_tokens.json', 'w') as outfile:
+with open(token_file, 'w') as outfile:
     json.dump(strava_tokens, outfile)
 
 
 # Open JSON file and print the file contents 
 # to check it's worked properly
-with open('strava_tokens.json') as check:
+with open(token_file) as check:
   data = json.load(check)
   print(data)
 

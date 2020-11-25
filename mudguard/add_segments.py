@@ -10,15 +10,17 @@ import math
 import csv
 import os.path
 
+token_file = 'tokens/strava_tokens.json'
+secret_file = 'tokens/strava_secret.json'
 # Get the tokens from file to connect to Strava
-with open('strava_tokens.json') as json_file:
+with open(token_file) as json_file:
     strava_tokens = json.load(json_file)
 
 # If access_token has expired then 
 # use the refresh_token to get the new access_token
 if strava_tokens['expires_at'] < time.time():# Make Strava auth API call with current refresh token
     print('refreshing token')
-    with open('strava_secret.json') as secret:
+    with open(secret_file) as secret:
         secrets = json.load(secret)
         response = requests.post(
                         url = 'https://www.strava.com/oauth/token',
@@ -30,7 +32,7 @@ if strava_tokens['expires_at'] < time.time():# Make Strava auth API call with cu
                                 }
                     )# Save response as json in new variable
         new_strava_tokens = response.json()# Save new tokens to file
-        with open('strava_tokens.json', 'w') as outfile:
+        with open(token_file, 'w') as outfile:
             json.dump(new_strava_tokens, outfile)# Use new Strava tokens from now
         strava_tokens = new_strava_tokens
 
