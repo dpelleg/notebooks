@@ -6,6 +6,7 @@ import requests
 import pandas as pd
 import json
 import time
+import math
 import csv
 import os.path
 
@@ -34,7 +35,7 @@ if strava_tokens['expires_at'] < time.time():# Make Strava auth API call with cu
         strava_tokens = new_strava_tokens
 
 
-segments_to_add = ['3808938', '1248017', '4267589', '18952377', '2481821', '7774409', '8574425', '17421855', '4202076', '1717839', '24208670']
+segments_to_add = ['3808938', '1248017', '4267589', '18952377', '2481821', '7774409', '8574425', '17421855', '4202076', '1717839', '17443790']
 
 # load the current list of segments, if it exists
 segfile = 'segments.csv'
@@ -55,6 +56,7 @@ for segment in segments_to_add:
         print("Adding " + segment)
         r = requests.get(url + segment + '?access_token=' + access_token)
         r = r.json()
+        r['time_retrieved'] = math.floor(time.time())
         newpd = pd.DataFrame(pd.json_normalize(r))
         segments = segments.append(newpd)
 

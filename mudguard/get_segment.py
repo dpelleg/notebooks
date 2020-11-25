@@ -30,8 +30,8 @@ if strava_tokens['expires_at'] < time.time():# Make Strava auth API call with cu
             json.dump(new_strava_tokens, outfile)# Use new Strava tokens from now
         strava_tokens = new_strava_tokens
     
-#segments = ['3808938', '1248017', '4267589', '18952377', '2481821', '7774409', '8574425', '17421855', '4202076', '1717839', '24208670']
-segments = ['3808938']
+#segments = ['3808938', '1248017', '4267589', '18952377', '2481821', '7774409', '8574425', '17421855', '4202076', '1717839', '17443790']
+segments = ['17443790']
 
 url = "https://www.strava.com/api/v3/segments/"
 
