@@ -30,5 +30,10 @@ for rf in ridelog_files:
         df = pd.concat([df, pd.DataFrame(jdata)], ignore_index=True)
 
 # Get historical average user per day
-
+c = 'created_at'
+md[c] = pd.to_datetime(md[c])
+c = 'time_retrieved'
+md[c] = pd.to_datetime(md[c], utc=True)
+md['hist_length'] = md['time_retrieved'] - md['created_at']
+md['hist_length_days'] = md['hist_length'].apply(lambda x: x.days)
 
