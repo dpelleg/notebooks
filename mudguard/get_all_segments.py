@@ -12,6 +12,9 @@ import math
 import random
 import sys
 
+# change dir to the script's dir
+os.chdir(sys.path[0])
+
 token_file = 'tokens/strava_tokens.json'
 secret_file = 'tokens/strava_secret.json'
 datadir = 'data/'
