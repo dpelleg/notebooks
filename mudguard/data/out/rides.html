@@ -1,4 +1,11 @@
-<html><head><meta charset="utf-8"><title>מדד רכיבות</title></head><body dir=rtl>עדיין יש בוץ או שאפשר כבר לרכוב? מדד הרכיבות הוא נסיון לענות על השאלה, בסקאלה של 0-100. אפס אומר ״אי אפשר לרכוב״, מאה זה ״אין בעיה לרכוב״.<br>  איך מחשבים את זה? כרגע, והדגש על כרגע, החישוב מתבסס על מספר הרכיבות שבוצעו על השביל ביום הקודם (לפי מה שדווח לסטראבה). כלומר אם מספר הרכיבות נמוך מאוד - ביחס לעומס הרגיל על אותו השביל - אז המדד יהיה נמוך, ולהיפך.<br>  הסתייגויות: <br> לא ידוע מי רכב על השביל, ומה היכולות שלו. אולי התנאים סבבה בשבילו/ה, אבל רוכב אחר יתקשה שם <br> אין התחשבות בכמות המשקעים שירדה. זה אמור להפתר ברגע שאצליח להוציא נתונים מהשירות המטאורולוגי (או מארכיון אקלימי אחר - מי שמכיר שידבר איתי) <br> אין התחשבות בתחזית מזג האויר ליום הבא <br> אין אחריות, אין החזרים, אין פיצויים. הרכיבה נעשית על אחריותך בלבד <br> עומסים אקראיים על השביל (למשל, קבוצה גדולה שעוברת בדיוק שם) יכולים להעלות את המדד בצורה מוגזמת <br> כרגע זה עובד רק לשבילים עם הרבה תנועה (מינימום 10 רכיבות ביום ממוצע). אפשר לבקש להוסיף לדוח עוד שבילים, אבל לא את כולם אפשר יהיה להוסיף <br>עדכון אחרון: 05/12/2020</br><table border="1" class="dataframe">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<title>מדד רכיבות</title>
+</head><body dir=rtl>
+עדיין יש בוץ או שאפשר כבר לרכוב? מדד הרכיבות הוא נסיון לענות על השאלה, בסקאלה של 0-100. אפס אומר ״אי אפשר לרכוב״, מאה זה ״אין בעיה לרכוב״.<br>  איך מחשבים את זה? כרגע, והדגש על כרגע, החישוב מתבסס על מספר הרכיבות שבוצעו על השביל ביום הקודם (לפי מה שדווח לסטראבה). כלומר אם מספר הרכיבות נמוך מאוד - ביחס לעומס הרגיל על אותו השביל - אז המדד יהיה נמוך, ולהיפך.<br>  הסתייגויות: <br> לא ידוע מי רכב על השביל, ומה היכולות שלו. אולי התנאים סבבה בשבילו/ה, אבל רוכב אחר יתקשה שם <br> אין התחשבות בכמות המשקעים שירדה. זה אמור להפתר ברגע שאצליח להוציא נתונים מהשירות המטאורולוגי (או מארכיון אקלימי אחר - מי שמכיר שידבר איתי) <br> אין התחשבות בתחזית מזג האויר ליום הבא <br> אין אחריות, אין החזרים, אין פיצויים. הרכיבה נעשית על אחריותך בלבד <br> עומסים אקראיים על השביל (למשל, קבוצה גדולה שעוברת בדיוק שם) יכולים להעלות את המדד בצורה מוגזמת <br> כרגע זה עובד רק לשבילים עם הרבה תנועה (מינימום 10 רכיבות ביום ממוצע). אפשר לבקש להוסיף לדוח עוד שבילים, אבל לא את כולם אפשר יהיה להוסיף 
+<br>עדכון אחרון: 06/12/2020</br>
+<div class="container">
+<table border="1" class="dataframe table">
   <thead>
     <tr style="text-align: right;">
       <th>מדד רכיבות</th>
@@ -9,70 +16,95 @@
   </thead>
   <tbody>
     <tr>
-      <td><div style="background-color: OrangeRed">0</div></td>
+      <td><div style="background-color: Chartreuse">100</div></td>
       <td><a href="https://www.strava.com/segments/1248017">העלייה מרון</a></td>
       <td>799</td>
       <td><a href="https://www.trailforks.com/goto/region/5224/">יער עופר</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: Chartreuse">100</div></td>
+      <td><div style="background-color: OrangeRed">0</div></td>
       <td><a href="https://www.strava.com/segments/1717839">סוללים צפון מערבה</a></td>
       <td>3103</td>
       <td><a href="https://www.trailforks.com/region/alon-hagalil/">אלון הגליל</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: DarkOrange">56</div></td>
+      <td><div style="background-color: DarkOrange">71</div></td>
       <td><a href="https://www.strava.com/segments/17421855">ברמים בירידה</a></td>
       <td>578</td>
       <td><a href="https://www.trailforks.com/goto/region/7518/">יער קרית אתא</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: DarkOrange">44</div></td>
+      <td><div style="background-color: OrangeRed">14</div></td>
       <td><a href="https://www.strava.com/segments/17443790">Last Climb Carmel Cup</a></td>
       <td>334</td>
       <td><a href="https://www.trailforks.com/goto/region/7219/">בית היערן</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: DarkOrange">59</div></td>
+      <td><div style="background-color: DarkOrange">33</div></td>
       <td><a href="https://www.strava.com/segments/18952377">שימרי</a></td>
       <td>1354</td>
       <td><a href="https://www.trailforks.com/goto/region/5224/">יער עופר</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: Chartreuse">100</div></td>
+      <td><div style="background-color: DarkOrange">50</div></td>
       <td><a href="https://www.strava.com/segments/2481821">מעלה רמי</a></td>
       <td>1664</td>
       <td><a href="https://www.trailforks.com/region/ramot-menashe/">רמות מנשה</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: Chartreuse">100</div></td>
+      <td><div style="background-color: OrangeRed">0</div></td>
       <td><a href="https://www.strava.com/segments/3808938">קפוצינו</a></td>
       <td>259</td>
       <td><a href="https://www.trailforks.com/goto/region/4439/">מישגב</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: DarkOrange">63</div></td>
+      <td><div style="background-color: OrangeRed">0</div></td>
       <td><a href="https://www.strava.com/segments/4202076">פאמפ טראק ריש לקיש</a></td>
       <td>1285</td>
       <td><a href="https://www.trailforks.com/region/alon-hagalil/">אלון הגליל</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: OrangeRed">0</div></td>
+      <td><div style="background-color: Chartreuse">100</div></td>
       <td><a href="https://www.strava.com/segments/4267589">מה עכשיו טיפוס</a></td>
       <td>758</td>
       <td><a href="https://www.trailforks.com/goto/region/5224/">יער עופר</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: Chartreuse">98</div></td>
+      <td><div style="background-color: OrangeRed">28</div></td>
       <td><a href="https://www.strava.com/segments/7774409">fun in the forest</a></td>
       <td>948</td>
       <td><a href="https://www.trailforks.com/region/ramot-menashe/">רמות מנשה</a></td>
     </tr>
     <tr>
-      <td><div style="background-color: Chartreuse">100</div></td>
+      <td><div style="background-color: DarkOrange">36</div></td>
       <td><a href="https://www.strava.com/segments/8574425">החילזון נהיה עצלן</a></td>
       <td>951</td>
       <td><a href="https://www.trailforks.com/goto/region/4395/">משמר העמק</a></td>
     </tr>
   </tbody>
-</table>בקשות למקטעים נוספים, הערות ושאלות: <a href="mailto:mudguard@pelleg.org">לשלוח מייל אלי</a>  </body></html>
+</table></div>
+בקשות למקטעים נוספים, הערות ושאלות: <a href="mailto:mudguard@pelleg.org">לשלוח מייל אלי</a>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+    /**
+    *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+    *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+
+    var disqus_config = function () {
+    this.page.url = "http://www.pelleg.org/shared/mudguard/rides.html";  // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = "mudguard-v1"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+
+    (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://mudguard.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+</body></html>
