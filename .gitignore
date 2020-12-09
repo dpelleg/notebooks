@@ -3,3 +3,4 @@
 .DS_Store
 misc/*.png
 mudguard/tokens
+__pycache__/

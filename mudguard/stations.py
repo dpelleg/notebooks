@@ -1,5 +1,3 @@
-import os
-import sys
 import datetime
 import pandas as pd
 from math import radians, cos, sin, asin, sqrt
@@ -12,6 +10,8 @@ stations_file = 'climate/stations.csv'
 
 if __name__ == "__main__":
     # change dir to the script's dir
+    import os
+    import sys
     os.chdir(sys.path[0])
 
 # load stations into a dataframe
@@ -39,8 +39,8 @@ def haversine(lon1, lat1, lon2, lat2):
 def closest_station(lat, lon):
     stations['dist'] = stations.apply(lambda s: haversine(lon, lat, s['lon'], s['lat']) , axis=1)
     closest = stations['dist'].idxmin()
-    print("Closest is {}".format(closest))
-    return(stations[closest])
+    #print("Closest is {}".format(closest))
+    return(closest)
                                           
 stations = load_stations()
 
