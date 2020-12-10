@@ -3,39 +3,20 @@ import requests
 import os
 import sys
 import pandas as pd
+import ims
 
 # get a fresh list of IMS climate stations and store it
 
 # change dir to the script's dir
 os.chdir(sys.path[0])
 
-token_file = 'tokens/ims_token.json'
-
-# Get the tokens from file
-with open(token_file) as json_file:
-    ims_tokens = json.load(json_file)# Loop through all activities
-
-ims_token = ims_tokens['token']
-
-url = "https://api.ims.gov.il/v1/Envista/stations"
-
-headers = {
-  'Authorization': 'ApiToken ' + ims_token
-}
-
-if False:
-    response = requests.request("GET", url, headers=headers)
-    data_read = response.text.encode('utf8')
-else:
-    with open('stations.txt', 'r') as infile:
-        data_read = infile.read()
-
+data_read = ims.stations_metadata()
 data = json.loads(data_read)
+
 df = []
 
 for row in data:
     if row['active']:
-        print(row['stationId'])
         row_dict = row.copy()
         channels = row['monitors']
         chan_dict = {}

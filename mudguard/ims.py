@@ -1,44 +1,98 @@
 import json
 import requests
+import datetime
 import os
 import sys
 import pandas as pd
 
-# change dir to the script's dir
-os.chdir(sys.path[0])
+# access functions to IMS API (Israeli climate agency)
+
+# This is the threshold hour for daily rain amount calculations
+threshold_hour = 19
+
+ims_token = None
+
+ims_cache = {}
+
+# Note: used both for the IMS API, and for our own internal cache keying
+date_format = "%Y/%m/%d"
+
+if __name__ == "__main__":
+    # change dir to the script's dir
+    os.chdir(sys.path[0])
 
 token_file = 'tokens/ims_token.json'
 
 # Get the tokens from file
 with open(token_file) as json_file:
-    ims_tokens = json.load(json_file)# Loop through all activities
+    ims_tokens = json.load(json_file)
 
 ims_token = ims_tokens['token']
 
-#url = "https://api.ims.gov.il/v1/envista/stations/2/data/daily/2020/11/25"
-url = "https://api.ims.gov.il/v1/Envista/stations"
 
 headers = {
   'Authorization': 'ApiToken ' + ims_token
 }
 
-response = requests.request("GET", url, headers=headers)
-data=response.text.encode('utf8')
-with open('stations.txt', 'wb') as outfile:
-     outfile.write(data)
+def httpreq(urlsuff):
+    url = "https://api.ims.gov.il/v1/envista/" + urlsuff
 
+    response = requests.request("GET", url, headers=headers)
+    data=response.text.encode('utf8')
+    return data
 
-if False:
-   data = json.loads(data_read)
-   df = []
-   data = data['data']
+def stations_metadata():
+    return httpreq("stations/")
 
-   for row in data:
-       for channel in row['channels']:
-           df.append(channel)
-           #df.append(row['data'])
+def climate_bydate(station, date):
+    return httpreq("stations/{}/data/daily/{}".format(station, date.strftime(date_format)))
 
-   df = pd.DataFrame((df))
-   df.to_csv('ims2.csv')
-   #print(df)
+def get_climate_day(station, date):
+    global ims_cache
+    cache_key = "{}##{}".format(station, date.strftime(date_format))
+
+    if cache_key in ims_cache:
+        data = ims_cache[cache_key]
+    else:
+        data = climate_bydate(station, date)
+        data=json.loads(data)
+
+        # update cache
+        ims_cache[cache_key] = data
+    
+    return data
+
+def ims_to_dictlist(data):
+    dl = []
+    stationId = data['stationId']
+    data = data['data']
+
+    for row in data:
+        datetime = row['datetime']
+        for channel in row['channels']:
+            dict = channel.copy()
+            dict['stationId'] = stationId
+            dict['datetime'] = datetime
+            dl.append(dict)
+    return dl
+
+# given a date, return the amount of rain in the 24-hour period ending on the threshold hour on that date
+def get_rain_day(station, date):
+    # get the list of dates we need to query
+    yesterdate = date - datetime.timedelta(days=1, seconds=-1)
+    d1 = get_climate_day(station, date)
+    d2 = get_climate_day(station, yesterdate)
+    dlist = ims_to_dictlist(d1)
+    # merge
+    dlist.extend(ims_to_dictlist(d2))
+    df = pd.DataFrame(dlist)
+    df['datetime'] = pd.to_datetime(df['datetime']).dt.tz_localize(None)
+
+    valid = df.query("valid and name=='Rain'")
+    if(len(valid) < 50):  # not enough data
+        return None
+
+    total = valid['value'][valid['datetime'].between(yesterdate, date)].sum()
+    return total
+
 
