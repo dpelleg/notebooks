@@ -31,5 +31,5 @@ for row in data:
         df.append(row_dict)
 
 df = pd.DataFrame(df)
-df.to_csv('data/climate/stations.csv')
+df.to_csv('data/climate/stations.csv', index=False)
 

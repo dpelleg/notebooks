@@ -17,10 +17,6 @@ ims_cache = {}
 # Note: used both for the IMS API, and for our own internal cache keying
 date_format = "%Y/%m/%d"
 
-if __name__ == "__main__":
-    # change dir to the script's dir
-    os.chdir(sys.path[0])
-
 token_file = 'tokens/ims_token.json'
 
 # Get the tokens from file
@@ -37,28 +33,35 @@ headers = {
 def httpreq(urlsuff):
     url = "https://api.ims.gov.il/v1/envista/" + urlsuff
 
-    response = requests.request("GET", url, headers=headers)
-    data=response.text.encode('utf8')
-    return data
+    try:
+        response = requests.request("GET", url, headers=headers)
+        data=response.text.encode('utf8')
+        return data
+    except ConnectionError:
+        return None
 
 def stations_metadata():
     return httpreq("stations/")
 
 def climate_bydate(station, date):
-    return httpreq("stations/{}/data/daily/{}".format(station, date.strftime(date_format)))
+    ret = httpreq("stations/{}/data/daily/{}".format(station, date.strftime(date_format)))
+    return ret
 
 def get_climate_day(station, date):
     global ims_cache
     cache_key = "{}##{}".format(station, date.strftime(date_format))
+    print(cache_key)
 
     if cache_key in ims_cache:
         data = ims_cache[cache_key]
     else:
         data = climate_bydate(station, date)
-        data=json.loads(data)
-
-        # update cache
-        ims_cache[cache_key] = data
+        if(len(data) > 0):
+            data=json.loads(data)
+            # update cache
+            ims_cache[cache_key] = data
+        else:
+            data = None
     
     return data
 
@@ -78,21 +81,30 @@ def ims_to_dictlist(data):
 
 # given a date, return the amount of rain in the 24-hour period ending on the threshold hour on that date
 def get_rain_day(station, date):
+    total=None
+    
     # get the list of dates we need to query
-    yesterdate = date - datetime.timedelta(days=1, seconds=-1)
-    d1 = get_climate_day(station, date)
-    d2 = get_climate_day(station, yesterdate)
-    dlist = ims_to_dictlist(d1)
-    # merge
-    dlist.extend(ims_to_dictlist(d2))
-    df = pd.DataFrame(dlist)
-    df['datetime'] = pd.to_datetime(df['datetime']).dt.tz_localize(None)
+    try:
+        yesterdate = date - datetime.timedelta(days=1, seconds=-1)
+        d1 = get_climate_day(station, date)
+        d2 = get_climate_day(station, yesterdate)
+        dlist = ims_to_dictlist(d1)
+        # merge
+        dlist.extend(ims_to_dictlist(d2))
+        df = pd.DataFrame(dlist)
+        df['datetime'] = pd.to_datetime(df['datetime']).dt.tz_localize(None)
 
-    valid = df.query("valid and name=='Rain'")
-    if(len(valid) < 50):  # not enough data
+        valid = df.query("valid and name=='Rain'")
+        if(len(valid) < 50):  # not enough data
+            return None
+
+        total = valid['value'][valid['datetime'].between(yesterdate, date)].sum()
+    except TypeError:
         return None
-
-    total = valid['value'][valid['datetime'].between(yesterdate, date)].sum()
     return total
 
-
+if __name__ == "__main__":
+    # change dir to the script's dir
+    os.chdir(sys.path[0])
+#    print(climate_bydate("42", datetime.date(2020, 11, 26)))
+    print(get_rain_day("42", datetime.date(2020, 11, 26)))

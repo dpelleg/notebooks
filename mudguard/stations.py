@@ -38,8 +38,7 @@ def haversine(lon1, lat1, lon2, lat2):
 # find the closest station for a given location
 def closest_station(lat, lon):
     stations['dist'] = stations.apply(lambda s: haversine(lon, lat, s['lon'], s['lat']) , axis=1)
-    closest = stations['dist'].idxmin()
-    #print("Closest is {}".format(closest))
+    closest = stations.iloc[stations['dist'].idxmin()]['stationId']
     return(closest)
                                           
 stations = load_stations()
