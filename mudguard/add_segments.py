@@ -9,6 +9,16 @@ import time
 import math
 import csv
 import os.path
+import sys
+from datetime import datetime
+
+if len(sys.argv) < 4:
+    print("Usage: add_segments segment_id region_url region_name")
+    exit(1)
+
+segment = sys.argv[1]
+region_url = sys.argv[2]
+region_name = sys.argv[3]
 
 token_file = 'tokens/strava_tokens.json'
 secret_file = 'tokens/strava_secret.json'
@@ -40,7 +50,7 @@ if strava_tokens['expires_at'] < time.time():# Make Strava auth API call with cu
 segments_to_add = ['3808938', '1248017', '4267589', '18952377', '2481821', '7774409', '8574425', '17421855', '4202076', '1717839', '17443790']
 
 # load the current list of segments, if it exists
-segfile = 'segments.csv'
+segfile = 'data/segments/segments.csv'
 
 
 if(os.path.isfile(segfile)):
@@ -53,13 +63,15 @@ else:
 url = "https://www.strava.com/api/v3/segments/"
 access_token = strava_tokens['access_token']# Get first page of activities from Strava with all fields
 
-for segment in segments_to_add:
-    if(segment not in all_ids):
-        print("Adding " + segment)
-        r = requests.get(url + segment + '?access_token=' + access_token)
-        r = r.json()
-        r['time_retrieved'] = math.floor(time.time())
-        newpd = pd.DataFrame(pd.json_normalize(r))
-        segments = segments.append(newpd)
+if(segment not in all_ids):
+    print("Adding " + segment)
+    r = requests.get(url + segment + '?access_token=' + access_token)
+    r = r.json()
+    r['time_retrieved'] = datetime.now().isoformat('T', 'seconds')
+    r['region_url'] = region_url
+    r['region_name'] = region_name
+    newpd = pd.DataFrame(pd.json_normalize(r))
+    segments = segments.append(newpd)
 
+#
 segments.to_csv(segfile, index=False)
