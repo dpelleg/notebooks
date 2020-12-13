@@ -3,6 +3,7 @@ import glob as mod_glob
 import json
 import math
 import ims
+from stations import closest_station
 
 datadir = 'data/'
 segfile = 'segments/segments.csv'
@@ -61,6 +62,18 @@ def get_segment_metadata():
     # md.drop(columns='Unnamed: 0', inplace=True)
     #md.set_index('id', inplace=True)
     md['id'] = md['id'].map(str)
+
+
+    # Add closest climate station 
+    #TODO: cache the result and store back in segments file
+    def find_closest(x):
+        xl = list(map(float, x.strip('][').split(', ')))
+        return(closest_station(xl[0], xl[1]))
+
+    md['closest_ims'] = None
+    # fill closest station 
+    md['closest_ims'] = md.apply(lambda r : find_closest(r['start_latlng']) if pd.isnull(r['closest_ims']) else r['closest'], axis=1)
+
     return md
 
 # add accumulated rainfall using a bathtub model:
@@ -68,15 +81,17 @@ def get_segment_metadata():
 #  Daily new rainfall is added to the ground, up to the ground's capacity (then its lost in groundwater flow)
 #  Additionally, the ground is drained at a constant rate per day
 
-def bathtub(v, capacity=10, drainage=3):
+def bathtub_(v, capacity, drainage):
     ret = []
     prev = 0;
     for vv in v:
         val = max(0, min(capacity, prev + vv) - drainage)
         prev = val
         ret.append(val)
-    ret = pd.Series(ret, index=v.index)
     return ret
+
+def bathtub(v, capacity=10, drainage=3):
+    return pd.Series(bathtub_(v, capacity, drainage), index=v.index)
 
 if __name__ == "__main__":
     get_rain_days(pd.DataFrame(columns=['date', 'closest_ims']))
