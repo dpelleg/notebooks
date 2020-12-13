@@ -58,10 +58,25 @@ def get_ridelogs():
 
 def get_segment_metadata():
     md = pd.read_csv(datadir + segfile)
-    md.drop(columns='Unnamed: 0', inplace=True)
+    # md.drop(columns='Unnamed: 0', inplace=True)
     #md.set_index('id', inplace=True)
     md['id'] = md['id'].map(str)
     return md
+
+# add accumulated rainfall using a bathtub model:
+#  Bathtub model of soil moisture:
+#  Daily new rainfall is added to the ground, up to the ground's capacity (then its lost in groundwater flow)
+#  Additionally, the ground is drained at a constant rate per day
+
+def bathtub(v, capacity=10, drainage=3):
+    ret = []
+    prev = 0;
+    for vv in v:
+        val = max(0, min(capacity, prev + vv) - drainage)
+        prev = val
+        ret.append(val)
+    ret = pd.Series(ret, index=v.index)
+    return ret
 
 if __name__ == "__main__":
     get_rain_days(pd.DataFrame(columns=['date', 'closest_ims']))
