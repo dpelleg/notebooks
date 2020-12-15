@@ -4,6 +4,8 @@ import datetime
 import os
 import sys
 import pandas as pd
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 
 # access functions to IMS API (Israeli climate agency)
 
@@ -25,20 +27,41 @@ with open(token_file) as json_file:
 
 ims_token = ims_tokens['token']
 
-
 headers = {
   'Authorization': 'ApiToken ' + ims_token
 }
 
+def retry_session(retries, session=None, backoff_factor=0.3):
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        method_whitelist=False,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
+session = retry_session(retries=5)
+
 def httpreq(urlsuff):
+    MAX_RETRY = 3
+    retries = 0
+
     url = "https://api.ims.gov.il/v1/envista/" + urlsuff
 
     try:
-        response = requests.request("GET", url, headers=headers)
+        response = session.get(url=url, headers=headers)
+        # requests.request("GET", url, headers=headers)
         data=response.text.encode('utf8')
         return data
-    except ConnectionError:
+    except ConnectionEror:
         return None
+    
+    return None
 
 def stations_metadata():
     return httpreq("stations/")
@@ -49,13 +72,15 @@ def climate_bydate(station, date):
 
 def get_climate_day(station, date):
     global ims_cache
+
     cache_key = "{}##{}".format(station, date.strftime(date_format))
-    print(cache_key)
 
     if cache_key in ims_cache:
         data = ims_cache[cache_key]
-    else:
+    else:  # cache miss
+        print(cache_key)
         data = climate_bydate(station, date)
+        #print(data)
         if(len(data) > 0):
             data=json.loads(data)
             # update cache
@@ -82,10 +107,10 @@ def ims_to_dictlist(data):
 # given a date, return the amount of rain in the 24-hour period ending on the threshold hour on that date
 def get_rain_day(station, date):
     total=None
-    
+
     # get the list of dates we need to query
     try:
-        yesterdate = date - datetime.timedelta(days=1, seconds=-1)
+        yesterdate = date - datetime.timedelta(days=1)
         d1 = get_climate_day(station, date)
         d2 = get_climate_day(station, yesterdate)
         dlist = ims_to_dictlist(d1)
@@ -98,7 +123,10 @@ def get_rain_day(station, date):
         if(len(valid) < 50):  # not enough data
             return None
 
-        total = valid['value'][valid['datetime'].between(yesterdate, date)].sum()
+        end_ts = datetime.datetime.combine(date, datetime.time(19, 0))
+        start_ts = end_ts - datetime.timedelta(days=1, seconds=-1)
+        idxlist = valid['datetime'].between(start_ts, end_ts)
+        total = valid['value'][idxlist].sum()
     except TypeError:
         return None
     return total
@@ -106,5 +134,7 @@ def get_rain_day(station, date):
 if __name__ == "__main__":
     # change dir to the script's dir
     os.chdir(sys.path[0])
-#    print(climate_bydate("42", datetime.date(2020, 11, 26)))
-    print(get_rain_day("42", datetime.date(2020, 11, 26)))
+    #print(climate_bydate("67", datetime.date(2020, 12, 5)))
+    print(get_rain_day("67", datetime.date(2020, 12, 5)))
+    #d1 = datetime.date(2020, 11, 27)
+    #d2 = datetime.time(19, 00)

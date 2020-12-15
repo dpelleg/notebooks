@@ -3,6 +3,7 @@ import glob as mod_glob
 import json
 import math
 import ims
+import datetime
 from stations import closest_station
 
 datadir = 'data/'
@@ -14,6 +15,13 @@ rain_file = 'climate/rain_days.csv'
 
 # find rain amounts for all missing dates, and cache the result
 def get_rain_days(additional_days):
+
+    def get_rain_day_helper(r):
+        if (pd.to_datetime('today') - r['date']).days > 7:   # if the missing data is for a date far in the past, stop asking, it's unlikely to appear
+            return None
+
+        return ims.get_rain_day(r['closest_ims'], r['date'])
+
     # load the values computed in previous runs
     try:
         rain_days = pd.read_csv(datadir + rain_file)
@@ -30,7 +38,7 @@ def get_rain_days(additional_days):
 
     # Fill missing values
     # To do: for days of missing data at the source, instead of repeatedly querying for them, mark when was the last query, and only query once in a period, and if too long has passed, give up
-    rain_days['rain_mm'] = rain_days.apply(lambda r : ims.get_rain_day(r['closest_ims'], r['date']) if pd.isnull(r['rain_mm']) else r['rain_mm'], axis=1)
+    rain_days['rain_mm'] = rain_days.apply(lambda r : get_rain_day_helper(r) if pd.isnull(r['rain_mm']) else r['rain_mm'], axis=1)
 
     # cache values for next time
     rain_days.to_csv(datadir + rain_file, index=False)
