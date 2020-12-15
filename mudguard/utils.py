@@ -66,13 +66,30 @@ def get_segment_metadata():
 
     # Add closest climate station 
     #TODO: cache the result and store back in segments file
-    def find_closest(x):
-        xl = list(map(float, x.strip('][').split(', ')))
-        return(closest_station(xl[0], xl[1]))
 
+    def parse_loc(x):
+        xl = list(map(float, x.strip('][').split(', ')))
+        ret = { 'lat' : xl[0], 'lon' : xl[1]}
+        return ret
+
+    def find_closest(x):
+        return(closest_station(x['lat'], x['lon']))
+
+    # parse coordinates
+    md = pd.concat([md.apply(lambda r : parse_loc(r['start_latlng']), axis=1, result_type='expand'), md], axis=1)
+
+    # Add a fake no-location segment
+    if len(md.query('id == "ALL"')) == 0:
+        ALL={'id' : 'ALL', 'name' : 'ALL'}
+        ALL.update(md[['lat', 'lon']].mean().to_dict())
+        md = md.append(ALL, ignore_index=True)
+    
     md['closest_ims'] = None
     # fill closest station 
-    md['closest_ims'] = md.apply(lambda r : find_closest(r['start_latlng']) if pd.isnull(r['closest_ims']) else r['closest'], axis=1)
+    md['closest_ims'] = md.apply(lambda r : find_closest(r) if pd.isnull(r['closest_ims']) else r['closest_ims'], axis=1)
+
+
+
 
     return md
 
