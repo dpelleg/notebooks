@@ -49,6 +49,37 @@ def get_rain_days(additional_days, lookback_horizon=7):
     rain_days.to_csv(datadir + rain_file, index=False)
     return rain_days
 
+def tabulate_ridelogs(rl_):
+    rl2 = pd.pivot_table(rl_, index='date', values='effort_count', columns='segment_id')
+    rl2.set_index(pd.DatetimeIndex(rl2.index.values), inplace=True)
+
+    # resample daily, interpolate missing values, and diff against the previous day
+    daily = rl2.resample('1D').interpolate().diff()
+    # negative values might come up if Strava removes rides
+    daily.clip(lower=0, inplace=True)
+
+    # normalize by day-of-week average
+    all_segs = daily.columns
+    d2 = daily.reset_index()
+    d3 = d2.melt(id_vars = 'index', value_vars=all_segs)
+    d4 = d3.rename(columns = {'index' : 'date', 'value' : 'rides'})
+
+    # Code to add a meta-segment to gather all segments
+    #all_rides = pd.DataFrame(d4.groupby('date')['rides'].sum()).reset_index()
+    #all_rides['segment_id'] = 'ALL'
+    #d4 = d4.append(all_rides)
+
+    d4['weekday'] = d4['date'].dt.weekday
+
+    by_dow = d4.groupby(['segment_id', 'weekday']).mean().rename(columns={'rides' : 'rides_dow'})
+    d5 = d4.merge(by_dow, how='left', left_on=['segment_id', 'weekday'], right_on=['segment_id', 'weekday'])
+    # normalize (nrides = normalized rides)
+    d5['nrides'] = d5['rides'] / d5['rides_dow']
+
+    # negative values might come up if Strava removes rides
+    # positive values which are too high are not useful for the analysis
+    d5['nrides'].clip(lower=0, upper=1.5, inplace=True)
+    return d5
 
 def get_ridelogs():
     
@@ -68,7 +99,7 @@ def get_ridelogs():
                     rl_ = pd.concat([rl_, pd.DataFrame(jdata)], ignore_index=True)
     rl_['date'] = pd.to_datetime(rl_['time_retrieved'], unit='s').dt.date
 
-    return rl_
+    return tabulate_ridelogs(rl_)
 
 def get_segment_metadata():
     md = pd.read_csv(datadir + segfile)
@@ -92,7 +123,7 @@ def get_segment_metadata():
     md = pd.concat([md.apply(lambda r : parse_loc(r['start_latlng']), axis=1, result_type='expand'), md], axis=1)
 
     # Add a fake no-location segment
-    if len(md.query('id == "ALL"')) == 0:
+    if False and len(md.query('id == "ALL"')) == 0:
         ALL={'id' : 'ALL', 'name' : 'ALL'}
         ALL.update(md[['lat', 'lon']].mean().to_dict())
         md = md.append(ALL, ignore_index=True)
