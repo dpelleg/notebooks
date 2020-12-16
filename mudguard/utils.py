@@ -14,17 +14,22 @@ rain_file = 'climate/rain_days.csv'
 
 
 # find rain amounts for all missing dates, and cache the result
-def get_rain_days(additional_days):
+def get_rain_days(additional_days, lookback_horizon=7):
 
     def get_rain_day_helper(r):
-        if (pd.to_datetime('today') - r['date']).days > 7:   # if the missing data is for a date far in the past, stop asking, it's unlikely to appear
+        if (pd.to_datetime('today') - r['date']).days > lookback_horizon:   # if the missing data is for a date far in the past, stop asking, it's unlikely to appear
             return None
 
-        return ims.get_rain_day(r['closest_ims'], r['date'])
+        c_ims = r['closest_ims'] 
+        if type(c_ims) == float:
+            c_ims = '%.0f' % c_ims
+
+        return ims.get_rain_day(c_ims, r['date'])
 
     # load the values computed in previous runs
     try:
         rain_days = pd.read_csv(datadir + rain_file)
+        rain_days['closest_ims'] = rain_days['closest_ims'].map(str)
     except FileNotFoundError:
         rain_days = pd.DataFrame(columns=['date', 'closest_ims', 'rain_mm'])
 
@@ -32,7 +37,7 @@ def get_rain_days(additional_days):
 
     # add any dates/segments which were added
     curr_rain_days = additional_days[['date', 'closest_ims']].drop_duplicates()
-    curr_rain_days['rain_mm'] = math.nan
+    curr_rain_days['rain_mm'] = None
 
     rain_days = pd.concat([rain_days, curr_rain_days], ignore_index=True).drop_duplicates(subset=['date', 'closest_ims'], keep='first')[['date', 'closest_ims', 'rain_mm']]
 
