@@ -135,6 +135,6 @@ if __name__ == "__main__":
     # change dir to the script's dir
     os.chdir(sys.path[0])
     #print(climate_bydate("67", datetime.date(2020, 12, 5)))
-    print(get_rain_day("44", datetime.date(2020, 12, 16)))
+    print(get_rain_day("78", datetime.date(2020, 12, 16)))
     #d1 = datetime.date(2020, 11, 27)
     #d2 = datetime.time(19, 00)

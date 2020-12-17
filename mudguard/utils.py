@@ -34,6 +34,10 @@ def get_rain_days(additional_days, lookback_horizon=7):
         rain_days = pd.DataFrame(columns=['date', 'closest_ims', 'rain_mm'])
 
     rain_days['date'] = pd.to_datetime(rain_days['date'])
+    additional_days['date'] = pd.to_datetime(additional_days['date'])
+    k='closest_ims'
+    rain_days[k] = rain_days[k].map(int)
+    additional_days[k] = additional_days[k].map(int)
 
     # add any dates/segments which were added
     curr_rain_days = additional_days[['date', 'closest_ims']].drop_duplicates()
@@ -42,10 +46,11 @@ def get_rain_days(additional_days, lookback_horizon=7):
     rain_days = pd.concat([rain_days, curr_rain_days], ignore_index=True).drop_duplicates(subset=['date', 'closest_ims'], keep='first')[['date', 'closest_ims', 'rain_mm']]
 
     # Fill missing values
-    # To do: for days of missing data at the source, instead of repeatedly querying for them, mark when was the last query, and only query once in a period, and if too long has passed, give up
-    rain_days['rain_mm'] = rain_days.apply(lambda r : get_rain_day_helper(r) if pd.isnull(r['rain_mm']) else r['rain_mm'], axis=1)
+
+    rain_days['rain_mm'] = rain_days.apply(lambda r : get_rain_day_helper(r) if pd.isnull(r['rain_mm']) or math.isnan(r['rain_mm']) else r['rain_mm'], axis=1)
 
     # cache values for next time
+    rain_days.dropna(inplace=True)
     rain_days.to_csv(datadir + rain_file, index=False)
     return rain_days
 
@@ -132,9 +137,6 @@ def get_segment_metadata():
     # fill closest station 
     md['closest_ims'] = md.apply(lambda r : find_closest(r) if pd.isnull(r['closest_ims']) else r['closest_ims'], axis=1)
 
-
-
-
     return md
 
 # add accumulated rainfall using a bathtub model:
@@ -146,7 +148,10 @@ def bathtub_(v, capacity, drainage):
     ret = []
     prev = 0;
     for vv in v:
-        val = max(0, min(capacity, prev + vv) - drainage)
+        if math.isnan(vv):
+            val = math.nan
+        else:
+            val = max(0, min(capacity, prev + vv) - drainage)
         prev = val
         ret.append(val)
     return ret
