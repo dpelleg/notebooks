@@ -51,7 +51,7 @@ def get_rain_days(additional_days, lookback_horizon=7):
 
     # cache values for next time
     rain_days.dropna(inplace=True)
-    rain_days.to_csv(datadir + rain_file, index=False)
+    rain_days.to_csv(datadir + rain_file, index=False, float_format='%g')
     return rain_days
 
 def tabulate_ridelogs(rl_):
