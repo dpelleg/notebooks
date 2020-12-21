@@ -17,6 +17,9 @@ rain_file = 'climate/rain_days.csv'
 def get_rain_days(additional_days, lookback_horizon=7):
 
     def get_rain_day_helper(r):
+        if(pd.isnull(r['date'])): # This could happen if we just added a segment, but no ride logs had been associated with it yet
+            return None
+            
         if (pd.to_datetime('today') - r['date']).days > lookback_horizon:   # if the missing data is for a date far in the past, stop asking, it's unlikely to appear
             return None
 
