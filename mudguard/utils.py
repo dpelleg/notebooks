@@ -159,8 +159,24 @@ def bathtub_(v, capacity, drainage):
         ret.append(val)
     return ret
 
+# a version of the bathtub model, where the drainage is a fraction of the moisture (ie, multiplicative instead of additive)
+
+def bathtub_geom_(v, capacity, drainage_factor):
+    ret = []
+    prev = 0;
+    for vv in v:
+        if math.isnan(vv):
+            val = math.nan
+        else:
+            val = min(capacity, prev + vv) * drainage_factor
+            if val < 1:
+                val = 0
+        prev = val
+        ret.append(val)
+    return ret
+
 def bathtub(v, capacity=10, drainage=3):
-    return pd.Series(bathtub_(v, capacity, drainage), index=v.index)
+    return pd.Series(bathtub_geom(v, capacity, drainage), index=v.index)
 
 if __name__ == "__main__":
     get_rain_days(pd.DataFrame(columns=['date', 'closest_ims']))
