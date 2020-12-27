@@ -57,7 +57,7 @@ def get_rain_days(additional_days, lookback_horizon=7):
     rain_days.to_csv(datadir + rain_file, index=False, float_format='%g')
     return rain_days
 
-def tabulate_ridelogs(rl_):
+def tabulate_ridelogs(rl_, upper_nrides):
     rl2 = pd.pivot_table(rl_, index='date', values='effort_count', columns='segment_id')
     rl2.set_index(pd.DatetimeIndex(rl2.index.values), inplace=True)
 
@@ -86,10 +86,10 @@ def tabulate_ridelogs(rl_):
 
     # negative values might come up if Strava removes rides
     # positive values which are too high are not useful for the analysis
-    d5['nrides'].clip(lower=0, upper=1.5, inplace=True)
+    d5['nrides'].clip(lower=0, upper=upper_nrides, inplace=True)
     return d5
 
-def get_ridelogs():
+def get_ridelogs(upper_nrides = 2.0):
     
     rl_ = None
 
@@ -107,7 +107,7 @@ def get_ridelogs():
                     rl_ = pd.concat([rl_, pd.DataFrame(jdata)], ignore_index=True)
     rl_['date'] = pd.to_datetime(rl_['time_retrieved'], unit='s').dt.date
 
-    return tabulate_ridelogs(rl_)
+    return tabulate_ridelogs(rl_, upper_nrides)
 
 def get_segment_metadata():
     md = pd.read_csv(datadir + segfile)
