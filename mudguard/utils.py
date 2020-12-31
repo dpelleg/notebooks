@@ -8,15 +8,23 @@ from stations import closest_station
 
 datadir = 'data/'
 segfile = 'segments/segments.csv'
-rain_file = 'climate/rain_days.csv'
+weather_file = 'climate/weather_days.csv'
 
 # a bunch of helper functions
 
 
-# find rain amounts for all missing dates, and cache the result
-def get_rain_days(additional_days, lookback_horizon=7):
+# find rain and wind amounts for all missing dates, and cache the result
+def get_weather_days(additional_days, lookback_horizon=7):
+    k1 = 'rain_mm'
+    k2 = 'wind_ms'
 
-    def get_rain_day_helper(r):
+    def use_cache(r):
+        if pd.isnull(r[k1]) or math.isnan(r[k1]) or pd.isnull(r[k2]) or math.isnan(r[k2]):
+            return get_weather_day_helper(r)
+        else:
+            return r
+        
+    def get_weather_day_helper(r):
         if(pd.isnull(r['date'])): # This could happen if we just added a segment, but no ride logs had been associated with it yet
             return None
             
@@ -27,35 +35,38 @@ def get_rain_days(additional_days, lookback_horizon=7):
         if type(c_ims) == float:
             c_ims = '%.0f' % c_ims
 
-        return ims.get_rain_day(c_ims, r['date'])
+        return ims.get_weather_day(c_ims, r['date'])
 
     # load the values computed in previous runs
     try:
-        rain_days = pd.read_csv(datadir + rain_file)
-        rain_days['closest_ims'] = rain_days['closest_ims'].map(str)
+        weather_days = pd.read_csv(datadir + weather_file)
+        weather_days['closest_ims'] = weather_days['closest_ims'].map(str)
     except FileNotFoundError:
-        rain_days = pd.DataFrame(columns=['date', 'closest_ims', 'rain_mm'])
+        weather_days = pd.DataFrame(columns=['date', 'closest_ims', k1, k2])
 
-    rain_days['date'] = pd.to_datetime(rain_days['date'])
+    weather_days['date'] = pd.to_datetime(weather_days['date'])
     additional_days['date'] = pd.to_datetime(additional_days['date'])
     k='closest_ims'
-    rain_days[k] = rain_days[k].map(int)
+    weather_days[k] = weather_days[k].map(int)
     additional_days[k] = additional_days[k].map(int)
 
     # add any dates/segments which were added
-    curr_rain_days = additional_days[['date', 'closest_ims']].drop_duplicates()
-    curr_rain_days['rain_mm'] = None
+    curr_weather_days = additional_days[['date', 'closest_ims']].drop_duplicates()
+    curr_weather_days[k1] = None
+    curr_weather_days[k2] = None
 
-    rain_days = pd.concat([rain_days, curr_rain_days], ignore_index=True).drop_duplicates(subset=['date', 'closest_ims'], keep='first')[['date', 'closest_ims', 'rain_mm']]
+    weather_days = pd.concat([weather_days, curr_weather_days], ignore_index=True).drop_duplicates(subset=['date', 'closest_ims'], keep='first')[['date', 'closest_ims', k1, k2]]
 
     # Fill missing values
+    newcols = weather_days.apply(use_cache, axis='columns', result_type='expand')
 
-    rain_days['rain_mm'] = rain_days.apply(lambda r : get_rain_day_helper(r) if pd.isnull(r['rain_mm']) or math.isnan(r['rain_mm']) else r['rain_mm'], axis=1)
-
+    weather_days[k1] = newcols[k1]
+    weather_days[k2] = newcols[k2]
+    
     # cache values for next time
-    rain_days.dropna(inplace=True)
-    rain_days.to_csv(datadir + rain_file, index=False, float_format='%g')
-    return rain_days
+    weather_days.dropna(inplace=True)
+    weather_days.to_csv(datadir + weather_file, index=False, float_format='%.3g')
+    return weather_days
 
 def tabulate_ridelogs(rl_, upper_nrides):
     rl2 = pd.pivot_table(rl_, index='date', values='effort_count', columns='segment_id')
@@ -147,38 +158,39 @@ def get_segment_metadata():
 #  Daily new rainfall is added to the ground, up to the ground's capacity (then its lost in groundwater flow)
 #  Additionally, the ground is drained at a constant rate per day
 
-def bathtub_(v, capacity, drainage):
+def bathtub_(v, capacity, drainage, fwind):
     ret = []
     prev = 0;
-    for vv in v:
-        if math.isnan(vv):
+    v_rain = v['rain_mm'].values
+    v_wind = v['wind_ms'].values
+    for vi in range(len(v_rain)):
+        if math.isnan(v_rain[vi]):
             val = math.nan
         else:
-            val = max(0, min(capacity, prev + vv) - drainage)
+            val = max(0, min(capacity, prev + v_rain[vi]) - drainage - v_wind[vi]*fwind)
         prev = val
         ret.append(val)
     return ret
 
 # a version of the bathtub model, where the drainage is a fraction of the moisture (ie, multiplicative instead of additive)
 
-def bathtub_geom_(v, capacity, drainage_factor):
+def bathtub_geom_(v, capacity, drainage_factor, fwind):
     ret = []
     prev = 0;
-    for vv in v:
-        if math.isnan(vv):
+    v_rain = v['rain_mm'].values
+    v_wind = v['wind_ms'].values
+    for vi in range(len(v_rain)):
+        if math.isnan(v_rain[vi]):
             val = math.nan
         else:
-            val = min(capacity, prev + vv) * drainage_factor
+            val = max(0, min(capacity, prev + v_rain[vi]) - v_wind[vi]*fwind) * drainage_factor
             if val < 1:
                 val = 0
         prev = val
         ret.append(val)
     return ret
 
-def bathtub(v, capacity=10, drainage=3):
-    return pd.Series(bathtub_geom(v, capacity, drainage), index=v.index)
-
 if __name__ == "__main__":
-    get_rain_days(pd.DataFrame(columns=['date', 'closest_ims']))
+    get_weather_days(pd.DataFrame(data={'date': ['2020-11-25'], 'closest_ims': ['44']}), lookback_horizon=100)
     #md = get_segment_metadata()
     #rl_ = get_ridelogs()

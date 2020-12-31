@@ -105,8 +105,15 @@ def ims_to_dictlist(data):
     return dl
 
 # given a date, return the amount of rain in the 24-hour period ending on the threshold hour on that date
-def get_rain_day(station, date):
-    total=None
+def get_weather_day(station, date):
+
+    def get_valid(df, colname):
+        valid = df.query("valid and name==@colname")
+        if(len(valid) < 50):  # not enough data
+            return None
+        return valid
+        
+    ret= { 'rain_mm' : None, 'wind_ms' : None}
 
     # get the list of dates we need to query
     try:
@@ -118,25 +125,29 @@ def get_rain_day(station, date):
         dlist.extend(ims_to_dictlist(d2))
         df = pd.DataFrame(dlist)
         df['datetime'] = pd.to_datetime(df['datetime']).dt.tz_localize(None)
-
-        valid = df.query("valid and name=='Rain'")
-        if(len(valid) < 50):  # not enough data
-            return None
-
         end_ts = datetime.datetime.combine(date, datetime.time(19, 0))
         start_ts = end_ts - datetime.timedelta(days=1, seconds=-1)
-        idxlist = valid['datetime'].between(start_ts, end_ts)
-        total = valid['value'][idxlist].sum()
+
+        valid = get_valid(df, 'Rain')
+        if(valid is not None):  # only if we have enough data
+            idxlist = valid['datetime'].between(start_ts, end_ts)
+            ret['rain_mm'] = valid['value'][idxlist].sum()
+
+        valid = get_valid(df, 'WS')
+        if(valid is not None):  # only if we have enough data
+            idxlist = valid['datetime'].between(start_ts, end_ts)
+            ret['wind_ms'] = valid['value'][idxlist].mean()
+            
     except TypeError:
-        return None
-    return total
+        return ret
+    return ret
 
 if __name__ == "__main__":
     # change dir to the script's dir
     os.chdir(sys.path[0])
     #print(climate_bydate("67", datetime.date(2020, 12, 5)))
-    #print(get_rain_day("42", datetime.date(2020, 12, 23)))
-    foo = pd.DataFrame(ims_to_dictlist(get_climate_day("259", datetime.date(2020, 12, 23))))
-    foo.to_csv('foo.csv')
+    print(get_weather_day("64", datetime.date(2020, 12, 1)))
+    #foo = pd.DataFrame(ims_to_dictlist(get_climate_day("259", datetime.date(2020, 12, 23))))
+    #foo.to_csv('foo.csv')
     #d1 = datetime.date(2020, 11, 27)
     #d2 = datetime.time(19, 00)

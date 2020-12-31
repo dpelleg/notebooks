@@ -41,15 +41,15 @@ d6 = d5.merge(md_meta, how='right', left_on=['segment_id'], right_on=['id'])
 
 # In[ ]:
 
-rain_days = utils.get_rain_days(d6)
+weather_days = utils.get_weather_days(d6)
 
 # Add rain measurements
-d7 = d6.merge(rain_days, how='left', left_on=['closest_ims', 'date'], right_on=['closest_ims', 'date'])
+d7 = d6.merge(weather_days, how='left', left_on=['closest_ims', 'date'], right_on=['closest_ims', 'date'])
 
 # cumulative measures of rainfall
 
 d7.sort_values('date', inplace=True)
-d7['rain_7d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(7).sum().clip(lower=0)
+d7['rain_7d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(7).sum().clip(lower=0))
 #data['soil_moisture'] = data.groupby('segment_id')['rain_mm'].apply(utils.bathtub)
 df_orig = d7.sort_values('date').copy()
 
@@ -65,6 +65,7 @@ params = pd.read_csv('data/segments/params.csv')
 df['soil_moisture'] = None
 df['capacity'] = None
 df['drainage'] = None
+df['fwind'] = None
 
 segments = df['id'].unique()
 
@@ -83,15 +84,17 @@ for seg in segments:
             if pdict['f'] == 'bathtub':
                 d = pdict['drainage']
                 c = pdict['capacity']
+                w = pdict['fwind']
                 if c > 0 and d > 0:
-                    moisture = utils.bathtub_(df[rows]['rain_mm'].values, capacity=c, drainage=d)
+                    moisture = utils.bathtub_(df[rows], capacity=c, drainage=d, fwind=w)
                     df.loc[rows, 'soil_moisture'] = moisture
                     df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : (r['soil_moisture'] - x90)/d, axis=1)
             elif pdict['f'] == 'bathtub_geom':
                 d = pdict['drainage_factor']
                 c = pdict['capacity']
+                w = pdict['fwind']
                 if c > 0 and d > 0:
-                    moisture = utils.bathtub_geom_(df[rows]['rain_mm'].values, capacity=c, drainage_factor=d)
+                    moisture = utils.bathtub_geom_(df[rows], capacity=c, drainage_factor=d, fwind=w)
                     df.loc[rows, 'soil_moisture'] = moisture
                     df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : 0 if r['soil_moisture'] < 1 else (math.log(y90) -math.log(r['soil_moisture']))/math.log(1/d), axis=1)
             else:
@@ -115,7 +118,7 @@ df = df.query("date == @lastdate").copy()
 
 # In[ ]:
 
-#df_all.query("segment_id == '17421855'")[['date', 'rides', 'rides_dow', 'nrides', 'rain_mm', 'soil_moisture']]
+df_all.query("segment_id == '17421855'")[['date', 'rides', 'rides_dow', 'nrides', 'rain_7d', 'soil_moisture']]
 
 
 # In[ ]:
@@ -182,18 +185,20 @@ dfout['distance'] = dfout['distance'].map(lambda x : "%.0f" % x)
 dfout.drop(columns=['date', 'name', 'id', 'distance'], inplace=True)
 dfout['nrides'] = dfout['nrides'].map(lambda x : "" if math.isnan(x) else "%.0f%%" % (100*x))
 dfout['rain_mm'] = dfout['rain_mm'].map(lambda x : "" if math.isnan(x) else "%.1f" % x)
+dfout['wind_ms'] = dfout['wind_ms'].map(lambda x : "" if math.isnan(x) else "%.1f" % x)
 dfout['rain_7d'] = dfout['rain_7d'].map(lambda x : "%.0f" % x)
 dfout['days_to_dry'] = dfout['dtd'].map(lambda x : "%.1f" % x)
 
                                       
 # re-order columns
-dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'rain_7d', 'days_to_dry']].copy()
+dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'wind_ms', 'rain_7d', 'days_to_dry']].copy()
 
 nrides_str = "מספר רכיבות אתמול <br> ביחס ליום %s ממוצע" % (weekday_name)
 dryness_str = 'מספר ימים <br>עד לייבוש'
 dfout.rename(columns = {'link' : 'מקטע', 'region_link' : 'איזור',
                         'nrides' : nrides_str,
                         'rain_mm' : 'גשם יומי מ״מ', 'rain_7d' : 'גשם מצטבר  <br>שבועי מ״מ',
+                        'wind_ms' : 'מהירות רוח יומי',
                         'days_to_dry' : dryness_str
                        },
              inplace=True)
