@@ -49,7 +49,7 @@ d7 = d6.merge(rain_days, how='left', left_on=['closest_ims', 'date'], right_on=[
 # cumulative measures of rainfall
 
 d7.sort_values('date', inplace=True)
-d7['rain_7d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(7).sum())
+d7['rain_7d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(7).sum().clip(lower=0)
 #data['soil_moisture'] = data.groupby('segment_id')['rain_mm'].apply(utils.bathtub)
 df_orig = d7.sort_values('date').copy()
 
