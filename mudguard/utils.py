@@ -94,6 +94,7 @@ def tabulate_ridelogs(rl_, upper_nrides):
     d5 = d4.merge(by_dow, how='left', left_on=['segment_id', 'weekday'], right_on=['segment_id', 'weekday'])
     # normalize (nrides = normalized rides)
     d5['nrides'] = d5['rides'] / d5['rides_dow']
+    d5['nrides_raw'] = d5['nrides']
 
     # negative values might come up if Strava removes rides
     # positive values which are too high are not useful for the analysis
