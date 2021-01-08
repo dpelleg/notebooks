@@ -1,7 +1,8 @@
-
+#!/usr/bin/env python
 # coding: utf-8
 
 # In[ ]:
+
 
 import pandas as pd
 import time
@@ -18,8 +19,12 @@ import ast
 
 # In[ ]:
 
+
 # gather data
 md = utils.get_segment_metadata()
+# ignore inactive segments
+md = md[md['active_modeling'] & md['active_strava']]
+
 rl_ = utils.get_ridelogs()
 
 # save a table aside
@@ -27,6 +32,7 @@ md_meta = md[['id', 'name', 'distance', 'region_name', 'region_url', 'closest_im
 
 
 # In[ ]:
+
 
 d5 = rl_.copy()
 
@@ -36,10 +42,12 @@ d6 = d5.merge(md_meta, how='right', left_on=['segment_id'], right_on=['id'])
 
 # In[ ]:
 
+
 #d6.query("segment_id == '6958098'")[['date', 'rides', 'nrides']]
 
 
 # In[ ]:
+
 
 weather_days = utils.get_weather_days(d6)
 
@@ -55,6 +63,13 @@ df_orig = d7.sort_values('date').copy()
 
 
 # In[ ]:
+
+
+d7[['name', 'closest_ims']][1:20]
+
+
+# In[ ]:
+
 
 # Load parameters fitted via a statistical model
 df = df_orig.copy()
@@ -110,6 +125,7 @@ df['dtd'].clip(lower=0, upper=10, inplace=True)
 
 # In[ ]:
 
+
 # trim to just most recent day
 df_all = df.copy()
 lastdate = df['date'].max()
@@ -118,10 +134,12 @@ df = df.query("date == @lastdate").copy()
 
 # In[ ]:
 
+
 df_all.query("segment_id == '17421855'")[['date', 'rides', 'rides_dow', 'nrides', 'rain_7d', 'soil_moisture']]
 
 
 # In[ ]:
+
 
 if False:
     from matplotlib.dates import DateFormatter
@@ -134,6 +152,7 @@ if False:
 
 
 # In[ ]:
+
 
 # prepare for display as nice HTML
 def link2(a, id):
@@ -165,6 +184,7 @@ dryness_color = lambda x: '<div style="background-color: {}">{}</div>'.format(tr
 
 
 # In[ ]:
+
 
 dfout = df.sort_values(['region_name', 'name']).copy()
 

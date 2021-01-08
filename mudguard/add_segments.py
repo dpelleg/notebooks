@@ -74,4 +74,4 @@ if(segment not in all_ids):
     segments = segments.append(newpd)
 
 #
-segments.to_csv(segfile, index=False)
+segments.to_csv(segfile, float_format='%.5g', index=False)

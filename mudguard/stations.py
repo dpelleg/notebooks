@@ -1,5 +1,6 @@
 import datetime
 import pandas as pd
+import os
 from math import radians, cos, sin, asin, sqrt
 
 
@@ -7,6 +8,7 @@ from math import radians, cos, sin, asin, sqrt
 
 datadir = 'data/'
 stations_file = 'climate/stations.csv'
+excluded_file = 'climate/excluded_stations.csv'
 
 if __name__ == "__main__":
     # change dir to the script's dir
@@ -16,7 +18,16 @@ if __name__ == "__main__":
 
 # load stations into a dataframe
 def load_stations():
-    return pd.read_csv(datadir + stations_file)
+    ret = pd.read_csv(datadir + stations_file)
+    
+    if(os.path.isfile(datadir + excluded_file)):
+        exclude = pd.read_csv(datadir + excluded_file)
+        r2 = ret.merge(exclude, how='left', left_on='stationId', right_on='stationId', indicator=True)
+        r3 = r2[r2['_merge'] == 'left_only'].drop(columns=['reason', '_merge'])
+        ret = r3.copy()
+
+    ret.set_index('stationId', drop=False, inplace=True);
+    return ret
     
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -37,15 +48,18 @@ def haversine(lon1, lat1, lon2, lat2):
 
 # find the closest station for a given location
 def closest_station(lat, lon):
-    stations['dist'] = stations.apply(lambda s: haversine(lon, lat, s['lon'], s['lat']) , axis=1)
-    closest = stations.iloc[stations['dist'].idxmin()]['stationId']
+    dist = stations.apply(lambda s: haversine(lon, lat, s['lon'], s['lat']) , axis=1)
+    closest = dist.idxmin()
     return(closest)
                                           
 stations = load_stations()
 
 if __name__ == "__main__":
-    latlng = [32.742056, 35.05223]
+    latlng=[31.384298, 34.8427]
     lat = latlng[0]
     lon = latlng[1]
-
-    foo = closest_station(lat, lon)
+    s = load_stations()
+    dist = s.apply(lambda s: haversine(lon, lat, s['lon'], s['lat']) , axis=1)
+    #print(s.info())
+    print(s.loc[dist.idxmin()])
+    #foo = closest_station(lat, lon)

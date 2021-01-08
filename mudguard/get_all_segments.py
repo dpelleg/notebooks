@@ -52,6 +52,9 @@ if(os.path.isfile(segfile)):
 else:
     exit('no segment file!?!?')
 
+# ignore inactive segments
+segments = segments[segments['active_strava']]
+
 url = "https://www.strava.com/api/v3/segments/"
 
 access_token = strava_tokens['access_token']# Get first page of activities from Strava with all fields
