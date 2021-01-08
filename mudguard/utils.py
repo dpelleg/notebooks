@@ -73,6 +73,7 @@ def tabulate_ridelogs(rl_, upper_nrides):
     rl2.set_index(pd.DatetimeIndex(rl2.index.values), inplace=True)
 
     # resample daily, interpolate missing values, and diff against the previous day
+    # If there are multiple readings on the same day, the implementation of "resample" will average them. I did not see an easy way to change this. Ideally, this should either be the maximum, or the most recent of the readings
     daily = rl2.resample('1D').interpolate().diff()
     # negative values might come up if Strava removes rides
     daily.clip(lower=0, inplace=True)
@@ -113,10 +114,10 @@ def get_ridelogs(upper_nrides = 2.0):
         with open(rf) as ridelog:
             for line in ridelog:
                 jdata.append(json.loads(line))
-                if(rl_ is None):
-                    rl_ = pd.DataFrame(jdata)
-                else:
-                    rl_ = pd.concat([rl_, pd.DataFrame(jdata)], ignore_index=True)
+        if(rl_ is None):
+            rl_ = pd.DataFrame(jdata)
+        else:
+            rl_ = pd.concat([rl_, pd.DataFrame(jdata)], ignore_index=True)
     rl_['date'] = pd.to_datetime(rl_['time_retrieved'], unit='s').dt.date
 
     return tabulate_ridelogs(rl_, upper_nrides)
