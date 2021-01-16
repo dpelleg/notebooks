@@ -70,6 +70,8 @@ if(segment not in all_ids):
     r['time_retrieved'] = datetime.now().isoformat('T', 'seconds')
     r['region_url'] = region_url
     r['region_name'] = region_name
+    r['active_modeling'] = True
+    r['active_strava'] = True
     newpd = pd.DataFrame(pd.json_normalize(r))
     segments = segments.append(newpd)
 
