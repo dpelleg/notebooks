@@ -169,6 +169,8 @@ def bathtub_(v, capacity, drainage, fwind):
         if math.isnan(v_rain[vi]):
             val = math.nan
         else:
+            if math.isnan(prev):     # the "min" operation will ignore the value which is nan, and instead use the capacity value. Need to protect against that
+                prev = 0
             val = max(0, min(capacity, prev + v_rain[vi]) - drainage - v_wind[vi]*fwind)
         prev = val
         ret.append(val)
@@ -185,6 +187,8 @@ def bathtub_geom_(v, capacity, drainage_factor, fwind):
         if math.isnan(v_rain[vi]):
             val = math.nan
         else:
+            if math.isnan(prev):     # the "min" operation will ignore the value which is nan, and instead use the capacity value. Need to protect against that
+                prev = 0
             val = max(0, min(capacity, prev + v_rain[vi]) - v_wind[vi]*fwind) * drainage_factor
             if val < 1:
                 val = 0
@@ -193,6 +197,8 @@ def bathtub_geom_(v, capacity, drainage_factor, fwind):
     return ret
 
 if __name__ == "__main__":
-    get_weather_days(pd.DataFrame(data={'date': ['2020-11-25'], 'closest_ims': ['44']}), lookback_horizon=100)
+#    get_weather_days(pd.DataFrame(data={'date': ['2020-11-25'], 'closest_ims': ['44']}), lookback_horizon=100)
     #md = get_segment_metadata()
     #rl_ = get_ridelogs()
+    d = pd.read_csv('foo.csv')
+    print(bathtub_geom_(d[['rain_mm', 'wind_ms']], capacity=100, drainage_factor=0.9, fwind=0))
