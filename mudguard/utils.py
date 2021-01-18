@@ -189,7 +189,11 @@ def bathtub_geom_(v, capacity, drainage_factor, fwind):
         else:
             if math.isnan(prev):     # the "min" operation will ignore the value which is nan, and instead use the capacity value. Need to protect against that
                 prev = 0
-            val = max(0, min(capacity, prev + v_rain[vi]) - v_wind[vi]*fwind) * drainage_factor
+            val1 = max(0, min(capacity, prev + v_rain[vi]) - v_wind[vi]*fwind)
+            # we want to ensure the geometric steps don't get too small near the end
+            val2_geom = val1 * drainage_factor
+            val2_additive = max(0, val1 - 1)
+            val = min(val2_geom, val2_additive)
             if val < 1:
                 val = 0
         prev = val
