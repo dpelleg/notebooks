@@ -15,3 +15,4 @@ segment_id,score,par
 4202076,0.76,"{'f': 'bathtub_geom', 'capacity': 16, 'drainage_factor': 0.9000000000000001, 'fwind': 0.5, 'intercept': 2.132196178324846, 'c_soil': -0.1428697612866907, 'c_rain': -0.07531553360386115, 'c_lockdown': -0.2952779522052207}"
 1248017,0.674,"{'f': 'bathtub', 'capacity': 42, 'drainage': 6.0, 'fwind': 0.75, 'intercept': 1.6485757947385284, 'c_soil': -0.047624461329474815, 'c_rain': -0.10413488069539532, 'c_lockdown': -0.5639182942005319}"
 8678209,0.573,"{'f': 'bathtub', 'capacity': 34, 'drainage': 22, 'fwind': 1.5, 'intercept': 1.0569624993366482, 'c_soil': -0.06946383695318412, 'c_rain': -0.6431417828499556, 'c_lockdown': -0.0005349376651275921}"
+
