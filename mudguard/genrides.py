@@ -209,9 +209,9 @@ def trafficlight_riderskill(v):
 DEBUG = False
 
 def riderskill_string(v):
-    v = nonan(v)
     if DEBUG:
-        return v
+        return "{:.2f}".format(float(v))
+    v = nonan(v)
     if v == "":
         return ""
     return scalestr(float(v), [(0.2, 'מורעל'),
