@@ -65,7 +65,7 @@ df_orig = d7.sort_values('date').copy()
 # In[ ]:
 
 
-d7[['name', 'closest_ims']][1:20]
+d7[['name', 'id', 'closest_ims']][1:20]
 
 
 # In[ ]:
@@ -78,9 +78,7 @@ params = pd.read_csv('data/segments/params.csv')
 
 # apply moisture estimate to each segment
 df['soil_moisture'] = None
-df['capacity'] = None
-df['drainage'] = None
-df['fwind'] = None
+df['pred'] = None
 
 segments = df['id'].unique()
 
@@ -91,32 +89,38 @@ for seg in segments:
         pdict.update(ast.literal_eval(par.iloc[0]['par']))
         if(pdict['score'] >= 0.45):
             rows = df['id'] == seg
-            coef = pdict['coef']
+            coef = pdict['c_soil']
             intercept = pdict['intercept']
             # We compute the moisture value which yields 0.9 of the intercept (soil is 90% dry)
+            # We ignore the factors which aren't soil moisture (pessimistically assume they'll be zero throughout)
             y90 = 0.9*intercept
-            x90 = -0.1*intercept/coef
+            if abs(coef) < 1e-6:
+                coef = -1e-6
+            x90 = (y90-intercept)/coef
             if pdict['f'] == 'bathtub':
                 d = pdict['drainage']
                 c = pdict['capacity']
                 w = pdict['fwind']
-                if c > 0 and d > 0:
-                    moisture = utils.bathtub_(df[rows], capacity=c, drainage=d, fwind=w)
-                    df.loc[rows, 'soil_moisture'] = moisture
-                    df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : (r['soil_moisture'] - x90)/d, axis=1)
+                moisture = utils.bathtub_(df[rows], capacity=c, drainage=d, fwind=w)
+                df.loc[rows, 'soil_moisture'] = moisture
+                df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : (r['soil_moisture'] - x90)/d, axis=1)
             elif pdict['f'] == 'bathtub_geom':
                 d = pdict['drainage_factor']
                 c = pdict['capacity']
                 w = pdict['fwind']
-                if c > 0 and d > 0:
-                    moisture = utils.bathtub_geom_(df[rows], capacity=c, drainage_factor=d, fwind=w)
-                    df.loc[rows, 'soil_moisture'] = moisture
-                    df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : 0 if r['soil_moisture'] < 1 else (math.log(y90) -math.log(r['soil_moisture']))/math.log(1/d), axis=1)
+
+                moisture = utils.bathtub_geom_(df[rows], capacity=c, drainage_factor=d, fwind=w)
+                df.loc[rows, 'soil_moisture'] = moisture
+                df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : 0 if r['soil_moisture'] < 1 else (math.log(y90) -math.log(r['soil_moisture']))/math.log(d), axis=1)
             else:
                 print("Uh")
-
+            # Predict level of usage on trail: compute the value of the function, given the soil moisture value
+            # (we take the other vars to be zero: rain per day, and lockdown)
+            # Normalize by the intercept, which is where the function is at x=0
+            df.loc[rows, 'pred'] = 1 + coef*df.loc[rows, 'soil_moisture']/intercept
+            
 #Bug: we need a better way to guarantee sane values
-df['dtd'].clip(lower=0, upper=10, inplace=True)
+#df['dtd'].clip(lower=0, upper=10, inplace=True)
 
 # if parameters make no sense, also invalidae the nrides
 #rows = (df['capacity'] == 0) | (df['drainage'] == 0)
@@ -135,7 +139,7 @@ df = df.query("date == @lastdate").copy()
 # In[ ]:
 
 
-df_all.query("segment_id == '17421855'")[['date', 'rides', 'rides_dow', 'nrides', 'rain_7d', 'soil_moisture']]
+#df_all.query("segment_id == '24442901'")[['date', 'rides', 'rides_dow', 'nrides', 'rain_mm', 'soil_moisture', 'dtd', 'capacity', 'drainage', 'fwind', 'x90', 'y90', 'pred']]
 
 
 # In[ ]:
@@ -154,6 +158,26 @@ if False:
 # In[ ]:
 
 
+def scaleup(a, b):
+    return a<b
+
+def scaledown(a, b):
+    return a>b
+
+
+def scalestr(v, scale, mycmp=scaleup):
+    for t in scale:
+        val = t[0]
+        s = t[1]
+        if val is None:
+            return s
+        if mycmp(v, val):
+            return s
+
+
+# In[ ]:
+
+
 # prepare for display as nice HTML
 def link2(a, id):
     return f'<a href="{a}">{id}</a>'
@@ -162,25 +186,49 @@ def nopct(s):
     return re.sub(r'%', '', s)
 
 def nonan(v):
-    if v is None or (type(v) == str and (v == "" or v =="nan")) or (type(v) == float and math.isnan(v)):
+    if v is None or (type(v) == str and (v == "" or v =="nan")) or (isinstance(v, float) and math.isnan(v)):
         return ""
     return v
 
-
-def trafficlight(v, scale=[80, 30]):
+def trafficlight(v):
     v = nonan(v)
     if v == "":
         return ""
+    return scalestr(float(v), [(80, 'Chartreuse'), (30, 'DarkOrange'), (None, 'OrangeRed')], mycmp=scaledown)
 
-    v = float(v)
-    if v>scale[0]:
-        return 'Chartreuse'
-    if v>scale[1]:
-        return 'DarkOrange'
-    return 'OrangeRed'
+def trafficlight_riderskill(v):
+    v = nonan(v)
+    if v == "":
+        return ""
+    return scalestr(float(v), [(0.2, '#e60000'),
+                               (0.4, 'OrangeRed'),
+                               (0.85, 'DarkOrange'),
+                               (None, 'Chartreuse')],
+                    mycmp=scaleup)
+
+DEBUG = False
+
+def riderskill_string(v):
+    v = nonan(v)
+    if DEBUG:
+        return v
+    if v == "":
+        return ""
+    return scalestr(float(v), [(0.2, 'מורעל'),
+                               (0.4, 'נחוש'),
+                               (0.85, 'לא מסוכר'),
+                               (None, 'בכיף שלו')],
+                    mycmp=scaleup)
 
 rideability_color = lambda x: '<div style="background-color: {}">{}</div>'.format(trafficlight(nopct(x)), x)
-dryness_color = lambda x: '<div style="background-color: {}">{}</div>'.format(trafficlight(-float(x), scale=[-1, -2]), nonan(x))
+
+skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(trafficlight_riderskill(x), riderskill_string(x))
+
+
+# In[ ]:
+
+
+df[['name', 'rain_mm', 'wind_ms', 'rain_7d', 'soil_moisture', 'pred']]
 
 
 # In[ ]:
@@ -208,22 +256,24 @@ dfout['rain_mm'] = dfout['rain_mm'].map(lambda x : "" if math.isnan(x) else "%.1
 dfout['wind_ms'] = dfout['wind_ms'].map(lambda x : "" if math.isnan(x) else "%.1f" % x)
 dfout['rain_7d'] = dfout['rain_7d'].map(lambda x : "%.0f" % x)
 dfout['days_to_dry'] = dfout['dtd'].map(lambda x : "%.1f" % x)
-
+dfout['pred'].fillna(math.nan, inplace=True)
                                       
 # re-order columns
-dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'wind_ms', 'rain_7d', 'days_to_dry']].copy()
+dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'wind_ms', 'rain_7d', 'pred']].copy()
 
 nrides_str = "מספר רכיבות אתמול <br> ביחס ליום %s ממוצע" % (weekday_name)
-dryness_str = 'מספר ימים <br>עד לייבוש'
+#dryness_str = 'מספר ימים <br>עד לייבוש'
+skill_str = 'דרגת נחישות'
+
 dfout.rename(columns = {'link' : 'מקטע', 'region_link' : 'איזור',
                         'nrides' : nrides_str,
                         'rain_mm' : 'גשם יומי מ״מ', 'rain_7d' : 'גשם מצטבר  <br>שבועי מ״מ',
                         'wind_ms' : 'מהירות רוח יומי',
-                        'days_to_dry' : dryness_str
+                        'pred' : skill_str
                        },
              inplace=True)
 
-htmlout = dfout.to_html(formatters={nrides_str: rideability_color, dryness_str: dryness_color},
+htmlout = dfout.to_html(formatters={nrides_str: rideability_color, skill_str: skill_color},
                         render_links=True, classes="table",
                         escape=False, index=False, border=1)
 
