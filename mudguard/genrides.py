@@ -65,12 +65,6 @@ df_orig = d7.sort_values('date').copy()
 # In[ ]:
 
 
-d7[['name', 'id', 'closest_ims']][1:20]
-
-
-# In[ ]:
-
-
 # Load parameters fitted via a statistical model
 df = df_orig.copy()
 
