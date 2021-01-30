@@ -6,7 +6,7 @@ import pandas as pd
 import sys
 
 if len(sys.argv) < 3:
-    print("Usage: deactivate_segment segment_id [strava|modeling]")
+    print("Usage: deactivate_segment segment_id [strava|model]")
     exit(1)
 
 segment = sys.argv[1]
