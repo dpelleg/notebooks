@@ -5,8 +5,12 @@
 import pandas as pd
 import sys
 
+d = {'strava' : 'active_strava', 'model' : 'active_modeling', 'html' : 'active_html'}
+
+all_keys = '|'.join(d.keys())
+
 if len(sys.argv) < 3:
-    print("Usage: deactivate_segment segment_id [strava|model]")
+    print("Usage: deactivate_segment segment_id " + all_keys)
     exit(1)
 
 segment = sys.argv[1]
@@ -16,13 +20,12 @@ segfile = 'data/segments/segments.csv'
 
 s = pd.read_csv(segfile)
 
-d = {'strava' : 'active_strava', 'model' : 'active_modeling'}
 colname = d.get(what)
 if colname is None:
-    print('Unknown type: %s. Available types: %s' % (what, ','.join(d.keys())))
+    print('Unknown type: %s. Available types: %s' % (what, all_keys))
     exit(1)
 
-for c in ['active_strava', 'active_modeling']:
+for c in d.values():
     if c not in s.columns:   # create the column if needed
         s[c] = True
 

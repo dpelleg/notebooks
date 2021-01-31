@@ -23,7 +23,7 @@ import ast
 # gather data
 md = utils.get_segment_metadata()
 # ignore inactive segments
-md = md[md['active_modeling'] & md['active_strava']]
+md = md[md['active_html']]
 
 rl_ = utils.get_ridelogs()
 

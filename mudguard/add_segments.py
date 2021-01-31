@@ -72,6 +72,7 @@ if(segment not in all_ids):
     r['region_name'] = region_name
     r['active_modeling'] = True
     r['active_strava'] = True
+    r['active_html'] = True
     newpd = pd.DataFrame(pd.json_normalize(r))
     segments = segments.append(newpd)
 
