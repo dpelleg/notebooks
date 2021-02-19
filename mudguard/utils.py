@@ -200,6 +200,22 @@ def bathtub_geom_(v, capacity, drainage_factor, fwind):
         ret.append(val)
     return ret
 
+# a soil model which accounts the number of days since the last rain
+def daycounter_(v, cday, rain_thresh, fwind):
+    ret = []
+    days_left = 0
+    v_rain = v['rain_mm'].values
+    v_wind = v['wind_ms'].values
+    for vi in range(len(v_rain)):
+        # if rainfall is more than the rain_thresh, reset the counter of days since last rain
+        # otherwise decrease counter, and deduct any effect of wind
+        if math.isnan(v_rain[vi]) or (v_rain[vi] < rain_thresh):
+            days_left = max(0, days_left - 1 - v_wind[vi]*fwind)
+        else:
+            days_left = cday
+        ret.append(days_left)
+    return ret
+
 if __name__ == "__main__":
 #    get_weather_days(pd.DataFrame(data={'date': ['2020-11-25'], 'closest_ims': ['44']}), lookback_horizon=100)
     #md = get_segment_metadata()

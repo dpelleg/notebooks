@@ -81,7 +81,7 @@ for seg in segments:
     if len(par) > 0:
         pdict = par.iloc[0].to_dict()
         pdict.update(ast.literal_eval(par.iloc[0]['par']))
-        if(pdict['score'] >= 0.45):
+        if(pdict['score'] >= 0.4):
             rows = df['id'] == seg
             coef = pdict['c_soil']
             intercept = pdict['intercept']
@@ -102,10 +102,16 @@ for seg in segments:
                 d = pdict['drainage_factor']
                 c = pdict['capacity']
                 w = pdict['fwind']
-
                 moisture = utils.bathtub_geom_(df[rows], capacity=c, drainage_factor=d, fwind=w)
                 df.loc[rows, 'soil_moisture'] = moisture
                 df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : 0 if r['soil_moisture'] < 1 else (math.log(y90) -math.log(r['soil_moisture']))/math.log(d), axis=1)
+            elif pdict['f'] == 'daycounter':
+                d = pdict['cday']
+                r = pdict['rain_thresh']
+                w = pdict['fwind']
+                moisture = utils.daycounter_(df[rows], cday=d, rain_thresh=r, fwind=w)
+                df.loc[rows, 'soil_moisture'] = moisture
+                df.loc[rows, 'dtd'] = d
             else:
                 print("Uh")
             # Predict level of usage on trail: compute the value of the function, given the soil moisture value
@@ -222,7 +228,7 @@ skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(traf
 # In[ ]:
 
 
-df[['name', 'rain_mm', 'wind_ms', 'rain_7d', 'soil_moisture', 'pred']]
+df[['name', 'rain_mm', 'wind_ms', 'rain_7d', 'soil_moisture', 'pred']].sort_values('pred')
 
 
 # In[ ]:
@@ -253,7 +259,7 @@ dfout['days_to_dry'] = dfout['dtd'].map(lambda x : "%.1f" % x)
 dfout['pred'].fillna(math.nan, inplace=True)
                                       
 # re-order columns
-dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'wind_ms', 'rain_7d', 'pred']].copy()
+dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'rain_7d', 'pred']].copy()
 
 nrides_str = "מספר רכיבות אתמול <br> ביחס ליום %s ממוצע" % (weekday_name)
 #dryness_str = 'מספר ימים <br>עד לייבוש'
