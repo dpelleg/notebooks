@@ -13,6 +13,7 @@ import utils
 import locale
 import re
 import ast
+from datetime import date, timedelta
 
 # Analyse segment statistics and generate an HTML table for public consumption
 
@@ -43,22 +44,39 @@ d6 = d5.merge(md_meta, how='right', left_on=['segment_id'], right_on=['id'])
 # In[ ]:
 
 
-#d6.query("segment_id == '6958098'")[['date', 'rides', 'nrides']]
+weather_days = utils.get_weather_days(d6)
 
 
 # In[ ]:
 
 
-weather_days = utils.get_weather_days(d6)
-
-# Add rain measurements
+# Add rain measurements to ride data
 d7 = d6.merge(weather_days, how='left', left_on=['closest_ims', 'date'], right_on=['closest_ims', 'date'])
 
 # cumulative measures of rainfall
 
 d7.sort_values('date', inplace=True)
 d7['rain_7d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(7).sum().clip(lower=0))
-#data['soil_moisture'] = data.groupby('segment_id')['rain_mm'].apply(utils.bathtub)
+
+
+# In[ ]:
+
+
+# we add another day of data, so we could predict based on simulated weather conditions
+
+lastdate = d7['date'].max()
+
+lastdate_copy = d7.query('date == @lastdate').copy()
+tomorrow = lastdate + timedelta(days=1)
+
+lastdate_copy['date'] = tomorrow
+
+# we will optimistically assume no rain tomorrow
+lastdate_copy['rain_mm'] = 0
+
+# now add back
+d7 = pd.concat([d7, lastdate_copy], ignore_index=True)
+
 df_orig = d7.sort_values('date').copy()
 
 
@@ -81,7 +99,7 @@ for seg in segments:
     if len(par) > 0:
         pdict = par.iloc[0].to_dict()
         pdict.update(ast.literal_eval(par.iloc[0]['par']))
-        if(pdict['score'] >= 0.4):
+        if(pdict['score'] >= 0.4):  # only try to predict if the quality of the model is good enough
             rows = df['id'] == seg
             coef = pdict['c_soil']
             intercept = pdict['intercept']
@@ -118,9 +136,7 @@ for seg in segments:
             # (we take the other vars to be zero: rain per day, and lockdown)
             # Normalize by the intercept, which is where the function is at x=0
             df.loc[rows, 'pred'] = 1 + coef*df.loc[rows, 'soil_moisture']/intercept
-            
-#Bug: we need a better way to guarantee sane values
-#df['dtd'].clip(lower=0, upper=10, inplace=True)
+
 
 # if parameters make no sense, also invalidae the nrides
 #rows = (df['capacity'] == 0) | (df['drainage'] == 0)
@@ -130,16 +146,24 @@ for seg in segments:
 # In[ ]:
 
 
-# trim to just most recent day
+# trim to just most recent observation. This also includes the fake day which we added for prediction
 df_all = df.copy()
-lastdate = df['date'].max()
-df = df.query("date == @lastdate").copy()
+df = df.query("date >= @lastdate").copy()
 
 
 # In[ ]:
 
 
-#df_all.query("segment_id == '24442901'")[['date', 'rides', 'rides_dow', 'nrides', 'rain_mm', 'soil_moisture', 'dtd', 'capacity', 'drainage', 'fwind', 'x90', 'y90', 'pred']]
+# average the prediction of the fake day and the last real day
+pred2 = df[['date', 'segment_id', 'pred']].fillna(math.nan).groupby(['segment_id'], as_index=False).mean()
+
+
+# In[ ]:
+
+
+# put predicted value back for the last real day's prediction
+today = df.query("date == @lastdate").drop(columns='pred').copy()
+today_pred = today.merge(pred2, how='left', left_on='segment_id', right_on='segment_id')
 
 
 # In[ ]:
@@ -228,13 +252,13 @@ skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(traf
 # In[ ]:
 
 
-df[['name', 'rain_mm', 'wind_ms', 'rain_7d', 'soil_moisture', 'pred']].sort_values('pred')
+today_pred[['name', 'rain_mm', 'wind_ms', 'rain_7d', 'soil_moisture', 'pred']].sort_values('pred')
 
 
 # In[ ]:
 
 
-dfout = df.sort_values(['region_name', 'name']).copy()
+dfout = today_pred.sort_values(['region_name', 'name']).copy()
 
 #format the date
 locale.setlocale(locale.LC_ALL, 'he_IL')
