@@ -72,12 +72,20 @@ tomorrow = lastdate + timedelta(days=1)
 lastdate_copy['date'] = tomorrow
 
 # we will optimistically assume no rain tomorrow
-lastdate_copy['rain_mm'] = 0
+# In case of NAs, we probably didn't get weather data. In this case better to invalidate the prediction too
+#  (bug: for the daycounter model, this will not stop it from still giving a prediction)
+lastdate_copy.loc[lastdate_copy['rain_mm'].notna(), 'rain_mm'] = 0
 
 # now add back
 d7 = pd.concat([d7, lastdate_copy], ignore_index=True)
 
 df_orig = d7.sort_values('date').copy()
+
+
+# In[ ]:
+
+
+lastdate_copy
 
 
 # In[ ]:
