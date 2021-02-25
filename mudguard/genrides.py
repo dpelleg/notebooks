@@ -85,12 +85,6 @@ df_orig = d7.sort_values('date').copy()
 # In[ ]:
 
 
-lastdate_copy
-
-
-# In[ ]:
-
-
 # Load parameters fitted via a statistical model
 df = df_orig.copy()
 
