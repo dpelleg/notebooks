@@ -254,7 +254,7 @@ skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(traf
 # In[ ]:
 
 
-today_pred[['name', 'rain_mm', 'wind_ms', 'rain_7d', 'soil_moisture', 'pred']].sort_values('pred')
+today_pred[['name', 'rain_mm', 'wind_ms', 'rain_7d', 'soil_moisture', 'pred', 'closest_ims']].sort_values('pred')
 
 
 # In[ ]:
@@ -287,7 +287,7 @@ dfout['pred'].fillna(math.nan, inplace=True)
 # re-order columns
 dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'rain_7d', 'pred']].copy()
 
-nrides_str = "מספר רכיבות אתמול <br> ביחס ליום %s ממוצע" % (weekday_name)
+nrides_str = "מספר רכיבות <br> ביחס ליום %s ממוצע" % (weekday_name)
 #dryness_str = 'מספר ימים <br>עד לייבוש'
 skill_str = 'דרגת נחישות'
 
