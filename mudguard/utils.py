@@ -5,6 +5,7 @@ import math
 import ims
 import datetime
 from stations import closest_station
+import time
 
 datadir = 'data/'
 segfile = 'segments/segments.csv'
@@ -15,11 +16,17 @@ weather_file = 'climate/weather_days.csv'
 
 # find rain and wind amounts for all missing dates, and cache the result
 def get_weather_days(additional_days, lookback_horizon=7):
-    k1 = 'rain_mm'
-    k2 = 'wind_ms'
+    newkeys = ['rain_mm', 'wind_ms', 'temp_deg', 'rain_morning', 'wind_morning', 'temp_morning']
+    weather_keys = ['date', 'closest_ims']
+    weather_keys.extend(newkeys)
 
     def use_cache(r):
-        if pd.isnull(r[k1]) or math.isnan(r[k1]) or pd.isnull(r[k2]) or math.isnan(r[k2]):
+        missing = False
+        for k in newkeys:
+            if pd.isnull(r[k]) or math.isnan(r[k]):
+                missing = True
+
+        if missing:
             return get_weather_day_helper(r)
         else:
             return r
@@ -35,6 +42,7 @@ def get_weather_days(additional_days, lookback_horizon=7):
         if type(c_ims) == float:
             c_ims = '%.0f' % c_ims
 
+        #time.sleep(0.5)
         return ims.get_weather_day(c_ims, r['date'])
 
     # load the values computed in previous runs
@@ -42,7 +50,7 @@ def get_weather_days(additional_days, lookback_horizon=7):
         weather_days = pd.read_csv(datadir + weather_file)
         weather_days['closest_ims'] = weather_days['closest_ims'].map(str)
     except FileNotFoundError:
-        weather_days = pd.DataFrame(columns=['date', 'closest_ims', k1, k2])
+        weather_days = pd.DataFrame(columns=weather_keys)
 
     weather_days['date'] = pd.to_datetime(weather_days['date'])
     additional_days['date'] = pd.to_datetime(additional_days['date'])
@@ -52,16 +60,16 @@ def get_weather_days(additional_days, lookback_horizon=7):
 
     # add any dates/segments which were added
     curr_weather_days = additional_days[['date', 'closest_ims']].drop_duplicates()
-    curr_weather_days[k1] = None
-    curr_weather_days[k2] = None
+    for k in newkeys:
+        curr_weather_days[k] = None
 
-    weather_days = pd.concat([weather_days, curr_weather_days], ignore_index=True).drop_duplicates(subset=['date', 'closest_ims'], keep='first')[['date', 'closest_ims', k1, k2]]
+    weather_days = pd.concat([weather_days, curr_weather_days], ignore_index=True).drop_duplicates(subset=['date', 'closest_ims'], keep='first')[weather_keys]
 
     # Fill missing values
     newcols = weather_days.apply(use_cache, axis='columns', result_type='expand')
 
-    weather_days[k1] = newcols[k1]
-    weather_days[k2] = newcols[k2]
+    for k in newkeys:
+        weather_days[k] = newcols[k]
     
     # cache values for next time
     weather_days.dropna(inplace=True)
@@ -217,8 +225,8 @@ def daycounter_(v, cday, rain_thresh, fwind):
     return ret
 
 if __name__ == "__main__":
-#    get_weather_days(pd.DataFrame(data={'date': ['2020-11-25'], 'closest_ims': ['44']}), lookback_horizon=100)
+    get_weather_days(pd.DataFrame(data={'date': ['2021-03-12'], 'closest_ims': ['44']}), lookback_horizon=200)
     #md = get_segment_metadata()
     #rl_ = get_ridelogs()
-    d = pd.read_csv('foo.csv')
-    print(bathtub_geom_(d[['rain_mm', 'wind_ms']], capacity=100, drainage_factor=0.9, fwind=0))
+    #d = pd.read_csv('foo.csv')
+    #print(bathtub_geom_(d[['rain_mm', 'wind_ms']], capacity=100, drainage_factor=0.9, fwind=0))

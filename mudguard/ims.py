@@ -8,6 +8,7 @@ from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
 # access functions to IMS API (Israeli climate agency)
+# Doc: https://ims.gov.il/he/ObservationDataAPI  (a copy of which should reside in this source tree as well)
 
 # This is the threshold hour for daily rain amount calculations
 threshold_hour = 19
@@ -113,7 +114,7 @@ def get_weather_day(station, date):
             return None
         return valid
         
-    ret= { 'rain_mm' : None, 'wind_ms' : None}
+    ret= { 'rain_mm' : None, 'wind_ms' : None, 'temp_deg' : None, 'rain_morning' : None, 'wind_morning' : None, 'temp_morning' : None}
 
     # get the list of dates we need to query
     try:
@@ -128,15 +129,29 @@ def get_weather_day(station, date):
         end_ts = datetime.datetime.combine(date, datetime.time(19, 0))
         start_ts = end_ts - datetime.timedelta(days=1, seconds=-1)
 
+        end_ts_morning = datetime.datetime.combine(date, datetime.time(10, 0))
+        start_ts_morning = datetime.datetime.combine(date, datetime.time(0, 0))
+
         valid = get_valid(df, 'Rain')
         if(valid is not None):  # only if we have enough data
             idxlist = valid['datetime'].between(start_ts, end_ts)
             ret['rain_mm'] = valid['value'][idxlist].sum()
+            idxlist = valid['datetime'].between(start_ts_morning, end_ts_morning)
+            ret['rain_morning'] = valid['value'][idxlist].sum()
 
         valid = get_valid(df, 'WS')
         if(valid is not None):  # only if we have enough data
             idxlist = valid['datetime'].between(start_ts, end_ts)
             ret['wind_ms'] = valid['value'][idxlist].mean()
+            idxlist = valid['datetime'].between(start_ts_morning, end_ts_morning)
+            ret['wind_morning'] = valid['value'][idxlist].mean()
+
+        valid = get_valid(df, 'TD')
+        if(valid is not None):  # only if we have enough data
+            idxlist = valid['datetime'].between(start_ts, end_ts)
+            ret['temp_deg'] = valid['value'][idxlist].mean()
+            idxlist = valid['datetime'].between(start_ts_morning, end_ts_morning)
+            ret['temp_morning'] = valid['value'][idxlist].mean()
             
     except TypeError:
         return ret
@@ -145,8 +160,9 @@ def get_weather_day(station, date):
 if __name__ == "__main__":
     # change dir to the script's dir
     os.chdir(sys.path[0])
-    #print(climate_bydate("67", datetime.date(2020, 12, 5)))
-    print(get_weather_day("64", datetime.date(2020, 12, 1)))
+#    print(climate_bydate("67", datetime.date(2020, 12, 5)))
+#    print(get_weather_day("64", datetime.date(2020, 12, 1)))
+    print(get_weather_day("67", datetime.date(2020, 12, 17)))
     #foo = pd.DataFrame(ims_to_dictlist(get_climate_day("259", datetime.date(2020, 12, 23))))
     #foo.to_csv('foo.csv')
     #d1 = datetime.date(2020, 11, 27)

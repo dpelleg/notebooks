@@ -228,7 +228,7 @@ def trafficlight_riderskill(v):
         return ""
     return scalestr(float(v), [(0.2, '#e60000'),
                                (0.4, 'OrangeRed'),
-                               (0.85, 'DarkOrange'),
+                               (0.8, 'DarkOrange'),
                                (None, 'Chartreuse')],
                     mycmp=scaleup)
 
@@ -242,7 +242,7 @@ def riderskill_string(v):
         return ""
     return scalestr(float(v), [(0.2, 'מורעל'),
                                (0.4, 'נחוש'),
-                               (0.85, 'לא מסוכר'),
+                               (0.8, 'לא מסוכר'),
                                (None, 'בכיף שלו')],
                     mycmp=scaleup)
 
