@@ -225,7 +225,7 @@ def daycounter_(v, cday, rain_thresh, fwind):
     return ret
 
 if __name__ == "__main__":
-    get_weather_days(pd.DataFrame(data={'date': ['2021-03-12'], 'closest_ims': ['44']}), lookback_horizon=200)
+    get_weather_days(pd.DataFrame(data={'date': ['2021-03-26'], 'closest_ims': ['44']}), lookback_horizon=200)
     #md = get_segment_metadata()
     #rl_ = get_ridelogs()
     #d = pd.read_csv('foo.csv')

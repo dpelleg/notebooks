@@ -17,6 +17,7 @@ ims_token = None
 
 ims_cache = {}
 
+tz_here = 'Asia/Jerusalem'
 # Note: used both for the IMS API, and for our own internal cache keying
 date_format = "%Y/%m/%d"
 
@@ -125,12 +126,12 @@ def get_weather_day(station, date):
         # merge
         dlist.extend(ims_to_dictlist(d2))
         df = pd.DataFrame(dlist)
-        df['datetime'] = pd.to_datetime(df['datetime']).dt.tz_localize(None)
-        end_ts = datetime.datetime.combine(date, datetime.time(19, 0))
+        df['datetime'] = pd.to_datetime(df['datetime'], utc=True).dt.tz_convert(tz_here)
+        end_ts = pd.to_datetime(datetime.datetime.combine(date, datetime.time(19, 0))).tz_localize(tz_here)
         start_ts = end_ts - datetime.timedelta(days=1, seconds=-1)
 
-        end_ts_morning = datetime.datetime.combine(date, datetime.time(10, 0))
-        start_ts_morning = datetime.datetime.combine(date, datetime.time(0, 0))
+        end_ts_morning = pd.to_datetime(datetime.datetime.combine(date, datetime.time(10, 0))).tz_localize(tz_here)
+        start_ts_morning = pd.to_datetime(datetime.datetime.combine(date, datetime.time(0, 0))).tz_localize(tz_here)
 
         valid = get_valid(df, 'Rain')
         if(valid is not None):  # only if we have enough data
@@ -162,7 +163,7 @@ if __name__ == "__main__":
     os.chdir(sys.path[0])
 #    print(climate_bydate("67", datetime.date(2020, 12, 5)))
 #    print(get_weather_day("64", datetime.date(2020, 12, 1)))
-    print(get_weather_day("67", datetime.date(2020, 12, 17)))
+    print(get_weather_day("67", datetime.date(2021, 3, 26)))
     #foo = pd.DataFrame(ims_to_dictlist(get_climate_day("259", datetime.date(2020, 12, 23))))
     #foo.to_csv('foo.csv')
     #d1 = datetime.date(2020, 11, 27)
