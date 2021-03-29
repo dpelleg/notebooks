@@ -101,7 +101,7 @@ for seg in segments:
     if len(par) > 0:
         pdict = par.iloc[0].to_dict()
         pdict.update(ast.literal_eval(par.iloc[0]['par']))
-        if(pdict['score'] >= 0.4):  # only try to predict if the quality of the model is good enough
+        if(pdict['score'] >= 0.35):  # only try to predict if the quality of the model is good enough
             rows = df['id'] == seg
             coef = pdict['c_soil']
             intercept = pdict['intercept']
