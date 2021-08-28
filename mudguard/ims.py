@@ -4,6 +4,7 @@ import datetime
 import os
 import sys
 import pandas as pd
+import time
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
