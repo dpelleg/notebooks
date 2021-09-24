@@ -1,8 +1,8 @@
 
-cd /home/mudguard
+cd /home/mudguard/notebooks/mudguard
 
 ./get_all_segments.py
 
-./genrides.py && mv data/out/rides.html mysite/static/rides.html
+python ./genrides.py && mv data/out/rides.html mysite/static/rides.html
 
 
