@@ -309,10 +309,10 @@ htmlout = dfout.to_html(formatters={nrides_str: rideability_color, skill_str: sk
 title = 'מדד בוציות בסינגלים'
 update_ts = '<br><b>' +  "עדכון אחרון: {}".format(dateout) + '</b></br>\n'
 
-with open('preamble.txt') as f:
+with open('preamble.txt', encoding="utf-8") as f:
     preamble = " ".join([l.rstrip() for l in f]) 
 
-with open('epilog.txt') as f:
+with open('epilog.txt', encoding="utf-8") as f:
     epilog = "\n".join([l.rstrip() for l in f]) 
 
 html_preamble = '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">\n<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">\n<title>' + title + '</title>\n</head><body dir=rtl>\n' + preamble + "\n" + update_ts + '<div class="container">\n'
@@ -322,4 +322,10 @@ fileout = "data/out/rides.html"
 
 with open(fileout, "w", encoding="utf-8") as file:
     file.write(htmlout)
+
+
+# In[ ]:
+
+
+
 
