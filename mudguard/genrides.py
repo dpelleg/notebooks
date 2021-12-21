@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import pandas as pd
@@ -18,7 +18,7 @@ from datetime import date, timedelta
 # Analyse segment statistics and generate an HTML table for public consumption
 
 
-# In[ ]:
+# In[2]:
 
 
 # gather data
@@ -32,7 +32,7 @@ rl_ = utils.get_ridelogs()
 md_meta = md[['id', 'name', 'distance', 'region_name', 'region_url', 'closest_ims']].copy()
 
 
-# In[ ]:
+# In[3]:
 
 
 d5 = rl_.copy()
@@ -41,13 +41,13 @@ d5 = rl_.copy()
 d6 = d5.merge(md_meta, how='right', left_on=['segment_id'], right_on=['id'])
 
 
-# In[ ]:
+# In[4]:
 
 
 weather_days = utils.get_weather_days(d6)
 
 
-# In[ ]:
+# In[5]:
 
 
 # Add rain measurements to ride data
@@ -56,10 +56,10 @@ d7 = d6.merge(weather_days, how='left', left_on=['closest_ims', 'date'], right_o
 # cumulative measures of rainfall
 
 d7.sort_values('date', inplace=True)
-d7['rain_7d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(7).sum().clip(lower=0))
+d7['rain_3d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(3).sum().clip(lower=0))
 
 
-# In[ ]:
+# In[6]:
 
 
 # we add another day of data, so we could predict based on simulated weather conditions
@@ -82,7 +82,7 @@ d7 = pd.concat([d7, lastdate_copy], ignore_index=True)
 df_orig = d7.sort_values('date').copy()
 
 
-# In[ ]:
+# In[7]:
 
 
 # Load parameters fitted via a statistical model
@@ -145,7 +145,7 @@ for seg in segments:
 #df.loc[rows, 'nrides'] = math.nan
 
 
-# In[ ]:
+# In[8]:
 
 
 # trim to just most recent observation. This also includes the fake day which we added for prediction
@@ -153,14 +153,14 @@ df_all = df.copy()
 df = df.query("date >= @lastdate").copy()
 
 
-# In[ ]:
+# In[9]:
 
 
 # average the prediction of the fake day and the last real day
 pred2 = df[['date', 'segment_id', 'pred']].fillna(math.nan).groupby(['segment_id'], as_index=False).mean()
 
 
-# In[ ]:
+# In[10]:
 
 
 # put predicted value back for the last real day's prediction
@@ -168,7 +168,7 @@ today = df.query("date == @lastdate").drop(columns='pred').copy()
 today_pred = today.merge(pred2, how='left', left_on='segment_id', right_on='segment_id')
 
 
-# In[ ]:
+# In[11]:
 
 
 if False:
@@ -181,7 +181,7 @@ if False:
     None
 
 
-# In[ ]:
+# In[12]:
 
 
 def scaleup(a, b):
@@ -201,7 +201,7 @@ def scalestr(v, scale, mycmp=scaleup):
             return s
 
 
-# In[ ]:
+# In[13]:
 
 
 # prepare for display as nice HTML
@@ -251,13 +251,13 @@ rideability_color = lambda x: '<div style="background-color: {}">{}</div>'.forma
 skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(trafficlight_riderskill(x), riderskill_string(x))
 
 
-# In[ ]:
+# In[14]:
 
 
-today_pred[['name', 'rain_mm', 'wind_ms', 'rain_7d', 'soil_moisture', 'pred', 'closest_ims']].sort_values('pred')
+today_pred[['name', 'rain_mm', 'wind_ms', 'rain_3d', 'soil_moisture', 'pred', 'closest_ims']].sort_values('pred')
 
 
-# In[ ]:
+# In[15]:
 
 
 dfout = today_pred.sort_values(['region_name', 'name']).copy()
@@ -280,12 +280,12 @@ dfout.drop(columns=['date', 'name', 'id', 'distance'], inplace=True)
 dfout['nrides'] = dfout['nrides'].map(lambda x : "" if math.isnan(x) else "%.0f%%" % (100*x))
 dfout['rain_mm'] = dfout['rain_mm'].map(lambda x : "" if math.isnan(x) else "%.1f" % x)
 dfout['wind_ms'] = dfout['wind_ms'].map(lambda x : "" if math.isnan(x) else "%.1f" % x)
-dfout['rain_7d'] = dfout['rain_7d'].map(lambda x : "%.0f" % x)
+dfout['rain_3d'] = dfout['rain_3d'].map(lambda x : "%.0f" % x)
 dfout['days_to_dry'] = dfout['dtd'].map(lambda x : "%.1f" % x)
 dfout['pred'].fillna(math.nan, inplace=True)
                                       
 # re-order columns
-dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'rain_7d', 'pred']].copy()
+dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'rain_3d', 'pred']].copy()
 
 nrides_str = "מספר רכיבות <br> ביחס ליום %s ממוצע" % (weekday_name)
 #dryness_str = 'מספר ימים <br>עד לייבוש'
@@ -293,7 +293,7 @@ skill_str = 'דרגת נחישות'
 
 dfout.rename(columns = {'link' : 'מקטע', 'region_link' : 'איזור',
                         'nrides' : nrides_str,
-                        'rain_mm' : 'גשם יומי מ״מ', 'rain_7d' : 'גשם מצטבר  <br>שבועי מ״מ',
+                        'rain_mm' : 'גשם יומי מ״מ', 'rain_3d' : 'גשם מצטבר  <br>3 ימים מ״מ',
                         'wind_ms' : 'מהירות רוח יומי',
                         'pred' : skill_str
                        },
