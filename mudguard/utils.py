@@ -6,13 +6,78 @@ import ims
 import datetime
 from stations import closest_station
 import time
+import numpy as np
 
 datadir = 'data/'
 segfile = 'segments/segments.csv'
 weather_file = 'climate/weather_days.csv'
 
+NM=12   # number of months
+FWHM = 1.5  # shape of kernel
+
 # a bunch of helper functions
 
+def sigma2fwhm(sigma):
+    return sigma * np.sqrt(8 * np.log(2))
+
+def fwhm2sigma(fwhm):
+    return fwhm / np.sqrt(8 * np.log(2))
+
+def month_dist(i, j):  # compute distance in number of months
+    d = abs(i-j)
+    d_rev = abs(NM-d)
+    return min(d, d_rev) # choose the smaller of the current year or the preceding/next year
+
+def apply_kernel(ts_, kernel, cell, month_vals):
+    sum_w = 0.0
+    sum_v = 0.0
+    for i in range(len(ts_)):
+        d = month_dist(month_vals[i], month_vals[cell])
+        k = kernel[d]
+        v = ts_[i]
+        if v is not None:
+            sum_w += k
+            sum_v += v*k
+    if sum_w > 0:
+        return sum_v/sum_w
+    return None
+
+def get_kernel():
+    sigma = fwhm2sigma(FWHM)
+    x_vals = np.arange(NM)         #it's true we'll only need half
+    kernel = np.exp(-(x_vals) ** 2 / (2 * sigma ** 2))
+    kernel = kernel / sum(kernel)
+    return kernel
+
+def mdow_average(data_, colname, colvals, rowname, rowvals, idname):
+    # given a matrix of average values per month-of-year and day-of-week, smooth the values using a kernel based on neighboring months
+    # return a dictionary of smoothed values
+
+    # unpack the row values
+    month_vals = list(map(lambda x: x[1], rowvals))
+
+    # transpose so we have months in columns
+    data = data_.T
+
+    ret_id = []
+    ret_day = []
+    ret_month = []
+    ret_val = []
+
+    kernel = get_kernel()
+
+    for day in colvals:
+        ts = data[day]
+
+        for month in range(len(ts)):
+            v = apply_kernel(ts, kernel, month, month_vals)
+            ret_id.append(idname)
+            ret_day.append(day)
+            ret_month.append(month_vals[month])
+            ret_val.append(v)
+
+    ret = pd.DataFrame({ 'segment_id' : ret_id, 'weekday' : ret_day, 'month' : ret_month, 'rides_mdow' : ret_val})
+    return ret
 
 # find rain and wind amounts for all missing dates, and cache the result
 def get_weather_days(additional_days, lookback_horizon=7):
@@ -76,6 +141,27 @@ def get_weather_days(additional_days, lookback_horizon=7):
     weather_days.to_csv(datadir + weather_file, index=False, float_format='%.3g')
     return weather_days
 
+# compute averages per day of week, smoothed with neighboring month's data
+def get_mdow(mydf):
+    by_mdow = mydf.groupby(['segment_id', 'month', 'weekday']).mean().rename(columns={'rides' : 'rides_mdow'})
+
+    mdow = None
+    seglist = mydf['segment_id'].unique()
+
+    for seg in seglist:
+        this_segment = by_mdow.query("segment_id == @seg")['rides_mdow'].unstack()
+        colname = this_segment.columns.name
+        colvals =  this_segment.columns.values
+        rowname = this_segment.index.names[1]
+        rowvals = this_segment.index.values
+        dat = this_segment.to_numpy()
+        r = mdow_average(dat, colname, colvals, rowname, rowvals, seg)
+        if mdow is None:
+            mdow = r.copy()
+        else:
+            mdow = pd.concat([mdow, r])
+    return mdow
+
 def tabulate_ridelogs(rl_, upper_nrides):
     rl2 = pd.pivot_table(rl_, index='date', values='effort_count', columns='segment_id')
     rl2.set_index(pd.DatetimeIndex(rl2.index.values), inplace=True)
@@ -98,11 +184,15 @@ def tabulate_ridelogs(rl_, upper_nrides):
     #d4 = d4.append(all_rides)
 
     d4['weekday'] = d4['date'].dt.weekday
+    d4['month'] =   d4['date'].dt.month
 
-    by_dow = d4.groupby(['segment_id', 'weekday']).mean().rename(columns={'rides' : 'rides_dow'})
-    d5 = d4.merge(by_dow, how='left', left_on=['segment_id', 'weekday'], right_on=['segment_id', 'weekday'])
+    by_dow = d4.groupby(['segment_id', 'weekday']).mean().rename(columns={'rides' : 'rides_dow'}).drop(columns='month')
+    by_mdow = get_mdow(d4)
+    d5 = d4.merge(by_dow, how='left', left_on=['segment_id', 'weekday'], right_on=['segment_id', 'weekday'], suffixes=('', '_y'))
+    d5 = d5.merge(by_mdow, how='left', left_on=['segment_id', 'weekday', 'month'], right_on=['segment_id', 'weekday', 'month'])
     # normalize (nrides = normalized rides)
-    d5['nrides'] = d5['rides'] / d5['rides_dow']
+    d5['nrides_dow'] = d5['rides'] / d5['rides_dow']
+    d5['nrides'] = d5['rides'] / d5['rides_mdow']
     d5['nrides_raw'] = d5['nrides']
 
     # negative values might come up if Strava removes rides
