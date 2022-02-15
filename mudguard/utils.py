@@ -35,7 +35,7 @@ def apply_kernel(ts_, kernel, cell, month_vals):
         d = month_dist(month_vals[i], month_vals[cell])
         k = kernel[d]
         v = ts_[i]
-        if v is not None:
+        if v is not None and not math.isnan(v):
             sum_w += k
             sum_v += v*k
     if sum_w > 0:
@@ -198,6 +198,7 @@ def tabulate_ridelogs(rl_, upper_nrides):
     # negative values might come up if Strava removes rides
     # positive values which are too high are not useful for the analysis
     d5['nrides'].clip(lower=0, upper=upper_nrides, inplace=True)
+    #return (d5, by_mdow)
     return d5
 
 def get_ridelogs(upper_nrides = 2.0):
