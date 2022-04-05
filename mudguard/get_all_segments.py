@@ -23,9 +23,9 @@ datadir = 'data/'
 with open(token_file) as json_file:
     strava_tokens = json.load(json_file)# Loop through all activities
 
-# If access_token has expired then 
+# If access_token has expired then
 # use the refresh_token to get the new access_token
-if strava_tokens['expires_at'] < time.time():# Make Strava auth API call with current refresh token
+if 'expires_at' not in strava_tokens or strava_tokens['expires_at'] < time.time():# Make Strava auth API call with current refresh token
     print('refreshing token',  file=sys.stderr)
     with open(secret_file) as secret:
         secrets = json.load(secret)
