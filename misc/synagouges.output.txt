@@ -1,0 +1,14 @@
+~/work/notebooks/misc/ >python3.9 get-synagouges.py 30.15,30.25,34.6,34.7
+Initial count 513
+{'lat': 30.20929648241206, 'lng': 34.67185929648242, 'closest_dist': 45.92366249795829}
+                           name                     place_id                           vicinity        lat        lng       dist
+70                 Chabad House  ChIJvYaWn0byARURdqvkJQBl5bM  Nakhal Meishar St 7, Mitzpe Ramon  30.606834  34.801673  45.923662
+0                      בית כנסת  ChIJEf84smVTABURJFdMe35nHDc                             Ketura  29.970239  35.061711  45.972097
+69           בית כנסת אור החיים  ChIJ0zJ5TkTyARUR6fwjCiHkMWA     Nahal Gerofit St, Mitzpe Ramon  30.606862  34.803619  45.977550
+64        בית כנסת בית אל אשכנז  ChIJHwcFUkTyARURXthkapqSpGE  Nahal Gerofit St 24, Mitzpe Ramon  30.606847  34.803798  45.980750
+61         Synagogue - בית כנסת  ChIJGS1MpaapARURhfFa3zuMJkk                Unnamed Road, Yahel  30.084533  35.128028  46.004368
+73           בית כנסת היכל שלמה  ChIJ1657jkXyARURP_8pY8NKIiI             HaEla St, Mitzpe Ramon  30.609270  34.803393  46.229119
+68            בית כנסת "התימני"  ChIJQcxmw8zzARURKXD4GbjaGng                       Mitzpe Ramon  30.610986  34.798199  46.279850
+67  בית כנסת עץ חיים, מצפה רמון  ChIJw2qpoUjyARURWpC-vi6Xg_Q        Ein Akev St 8, Mitzpe Ramon  30.610848  34.800471  46.322566
+71                      צמח דוד  ChIJvSXME0jyARUR-vNshtErcFM     Ein Ofarim St 14, Mitzpe Ramon  30.612438  34.797202  46.410844
+63                    משכן אהוד  ChIJ6y4bqVrzARUR5qsS8mvEP5I    Ein Shakhak St 36, Mitzpe Ramon  30.613300  34.797289  46.505572
