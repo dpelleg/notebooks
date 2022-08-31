@@ -127,7 +127,7 @@ def get_and_save_chunk(api_key, search_lat, search_lng, outdir, name, radius=sea
 def pois_to_list(d):
     dat =[]
     for p in d['results']:
-        if 'synagogue' in p['types']:
+        if search_type in p['types']:
             datum = {}
             for f in ['name', 'place_id', 'vicinity']:
                 datum[f] = p.get(f)
