@@ -3,6 +3,11 @@ import re
 import pysnooper
 import pickle
 
+
+'''
+Read the excel-to-PDF file found at
+https://www.haifa.muni.il/development-and-construction/engineering-administration/uprooting-trees/
+'''
 c=0
 prev_x = 0
 
@@ -30,6 +35,7 @@ class Cell:
         return self.text
 
 def clip(x):
+    # clip a near-zero value to zero
     tol = 1
     if abs(x) < tol:
         x = 0
@@ -55,17 +61,14 @@ def new_row(text, x):
     new_cell(text, x)
     table.append(curr_row)
     curr_row = []
-    glue = False
 
 #@pysnooper.snoop('log.txt', color=False, relative_time=True)
 def visitor_body_delta_vector(text, cm, tm, fontDict, fontSize):
-    global curr_cell, curr_row, table, baseline_y, prev_x, prev_y, glue
+    global curr_cell, curr_row, table, baseline_y, prev_x, prev_y
+
     # skip spacers
     if re.match(r'^\s*$', text):
         return
-
-    if False and re.search(r'גודל', text):
-        glue = True
 
     handled = False
 
@@ -91,15 +94,14 @@ def visitor_body_delta_vector(text, cm, tm, fontDict, fontSize):
             baseline_y = y
             new_row(text, x)
             handled = True
-            bound_cands.append(x)
         else:    # stay at the same cell
             curr_cell.add_text(text, x, linebreaks=True)
             handled = True
     if dx < 0 and dy == 0:      # moving left
         if h_y == 0:    # on the baseline height. Move to a new cell, unless ...
-            if curr_cell.has_linebreaks and glue:           # this is a hack to deal with bad dumps from the Haifa municipality
+            dx_to_cell_left = x - curr_cell.min_x()
+            if dx_to_cell_left >= -2:               # this is a hack to deal with bad dumps from the Haifa municipality
                 curr_cell.add_text(text, x)
-                glue = False
                 handled = True
             else:
                 new_cell(text, x)
@@ -110,16 +112,13 @@ def visitor_body_delta_vector(text, cm, tm, fontDict, fontSize):
     if dx < 0 and dy > 0:  # moving left and up - create a new cell
         new_cell(text, x)
         handled = True
-        bound_cands.append(x)
     if dx == 0 and dy < 0:         # moving straight down
-        if True or h_y >= 0:       # same cell
-            curr_cell.add_text(text, x)
-            handled = True
-        else:
-            print("?")
+        curr_cell.add_text(text, x)
+        handled = True
 
     if not handled:
         curr_cell.add_text(text, x)
+        handled = True
 
     prev_x = x
     prev_y = y
@@ -188,20 +187,25 @@ def visitor_body2(text, cm, tm, fontDict, fontSize):
 
 reader = PdfReader("rptPirsum.pdf")
 
-bound_cands = []
 table = []
-#for page in reader.pages:
-for i in range(len(reader.pages)):
+debug = False
+if debug:
+    pagelist = [0]
+else:
+    pagelist = range(len(reader.pages))
+for i in pagelist:
     curr_row = []
     curr_cell = None
     baseline_y = None
-    glue = False
 
     print(i)
 
     reader.pages[i].extract_text(visitor_text=visitor_body_delta_vector)
     #reader.pages[i].extract_text(visitor_text=visitor_body_dump_struct)
 
-
-with open('table.pickle', 'wb') as handle:
-    pickle.dump(table, handle)
+if debug:
+    for r in table:
+        print(r)
+else:
+    with open('table.pickle', 'wb') as handle:
+        pickle.dump(table, handle)
