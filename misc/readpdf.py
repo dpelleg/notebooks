@@ -3,6 +3,9 @@ import re
 import pysnooper
 import pandas as pd
 from TableFixer import table_to_df
+import pickle
+
+# Written by Dan Pelleg
 
 '''
 Read the excel-to-PDF file found at
@@ -24,8 +27,8 @@ class Cell:
     def min_x(self):
         return min(self.all_x)
 
-    def add_text(self, text, x, linebreaks=False):
-        if re.search(r'\S$', self.text) and re.search(r'^\S', text):   # add a spacer
+    def add_text(self, text, x, pad=True, linebreaks=False):
+        if pad and re.search(r'\S$', self.text) and re.search(r'^\S', text):   # add a spacer
             text = " " + text
         self.text += text
         self.all_x.append(x)
@@ -34,9 +37,8 @@ class Cell:
     def __str__(self):
         return self.text
 
-def clip(x):
+def clip(x, tol=1):
     # clip a near-zero value to zero
-    tol = 1
     if abs(x) < tol:
         x = 0
     return x
@@ -95,13 +97,16 @@ def visitor_body_delta_vector(text, cm, tm, fontDict, fontSize):
             new_row(text, x)
             handled = True
         else:    # stay at the same cell
-            curr_cell.add_text(text, x, linebreaks=True)
+            curr_cell.add_text(text, x, pad=True, linebreaks=True)
             handled = True
     if dx < 0 and dy == 0:      # moving left
         if h_y == 0:    # on the baseline height. Move to a new cell, unless ...
             dx_to_cell_left = x - curr_cell.min_x()
             if dx_to_cell_left >= -2:               # this is a hack to deal with bad dumps from the Haifa municipality
                 curr_cell.add_text(text, x)
+                handled = True
+            elif dx > -9 and len(text) <= 2 and not re.match(r'^\d+$', text):               # this is a hack to deal with bad dumps from the Haifa municipality
+                curr_cell.add_text(text, x, pad=False)
                 handled = True
             else:
                 new_cell(text, x)
@@ -140,7 +145,7 @@ def visitor_body_dump_struct(text, cm, tm, fontDict, fontSize):
 reader = PdfReader("rptPirsum.pdf")
 
 table = []
-debug = False
+debug = True
 if debug:
     pagelist = [0]
 else:
@@ -151,15 +156,23 @@ for i in pagelist:
     baseline_y = None
 
     if i % 10 == 0:
-        print(i, end ='...')
+        print(i, end ='...', flush=True)
 
     reader.pages[i].extract_text(visitor_text=visitor_body_delta_vector)
     #reader.pages[i].extract_text(visitor_text=visitor_body_dump_struct)
 print()
 
 if debug:
+    with open('table.pickle', 'wb') as f:
+        pickle.dump(table, f)
     for r in table:
         print(r)
+    df, rej = table_to_df(table)
+    if len(rej) > 0:
+        print("rejects:")
+        for r in rej:
+            print(r)
+    print(df.head())
 else:
     df, rej = table_to_df(table)
     df.to_pickle('df.pickle')

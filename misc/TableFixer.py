@@ -2,6 +2,9 @@ import copy
 import pandas
 import re
 import pandas as pd
+import warnings
+
+# Written by Dan Pelleg
 
 # text file with column headers, one per line
 colnames_file = 'colnames-haifa.txt'
@@ -40,7 +43,7 @@ def fix_table(table):
     for i in rejects_idx:
         #print("rejecting " + str(i))
         rejects.append(table.pop(i))
-    return rejects
+    return rejects, rejects_idx
 
 def fix_quote_name(line):
     '''
@@ -48,7 +51,8 @@ def fix_quote_name(line):
     Where a quote sign appears on a cell by its own, but really is there to connect the previous and following cells.
     Notable example: בע״מ
     '''
-    if re.match(r'\s*"\s*$', line[5]):
+#    if re.match(r'\s*"\s*$', line[5]):
+    if re.match(r'^\s*".?.?\s*$', line[5]):
         # merge cells 5 and 6
         # 6 is 5 after the pop
         line[4] += despaced(line.pop(5)) + line.pop(5)
@@ -81,7 +85,10 @@ def fix_house_number(line):
 def table_to_df(table_):
     table_ = table_[3:]          # strip header lines (we'll read the column names from a file)
     table = copy.deepcopy(table_)
-    rej = fix_table(table)
+    rej, rej_idx = fix_table(table)
+
+    if rej_idx and min(rej_idx) < 10:
+        warnings.warn('There are rejected lines near the top of the list')
 
     with open(colnames_file, 'r') as rf:
         colnames = list(map(lambda s: s.strip(), rf.readlines()))
