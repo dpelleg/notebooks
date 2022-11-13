@@ -41,7 +41,7 @@ def retry_session(retries, session=None, backoff_factor=0.3):
         read=retries,
         connect=retries,
         backoff_factor=backoff_factor,
-        method_whitelist=False,
+        allowed_methods=False,
     )
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
@@ -63,7 +63,7 @@ def httpreq(urlsuff):
         return data
     except ConnectionEror:
         return None
-    
+
     return None
 
 def stations_metadata():
@@ -90,7 +90,7 @@ def get_climate_day(station, date):
             ims_cache[cache_key] = data
         else:
             data = None
-    
+
     return data
 
 def ims_to_dictlist(data):
@@ -115,7 +115,7 @@ def get_weather_day(station, date):
         if(len(valid) < 50):  # not enough data
             return None
         return valid
-        
+
     ret= { 'rain_mm' : None, 'wind_ms' : None, 'temp_deg' : None, 'rain_morning' : None, 'wind_morning' : None, 'temp_morning' : None}
 
     # get the list of dates we need to query
@@ -154,7 +154,7 @@ def get_weather_day(station, date):
             ret['temp_deg'] = valid['value'][idxlist].mean()
             idxlist = valid['datetime'].between(start_ts_morning, end_ts_morning)
             ret['temp_morning'] = valid['value'][idxlist].mean()
-            
+
     except TypeError:
         return ret
     return ret
