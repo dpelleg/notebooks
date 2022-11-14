@@ -145,7 +145,8 @@ def visitor_body_dump_struct(text, cm, tm, fontDict, fontSize):
 reader = PdfReader("rptPirsum.pdf")
 
 table = []
-debug = True
+debug = False
+#debug = True
 if debug:
     pagelist = [0]
 else:
@@ -159,7 +160,6 @@ for i in pagelist:
         print(i, end ='...', flush=True)
 
     reader.pages[i].extract_text(visitor_text=visitor_body_delta_vector)
-    #reader.pages[i].extract_text(visitor_text=visitor_body_dump_struct)
 print()
 
 if debug:
