@@ -139,8 +139,8 @@ def visitor_body_dump_struct(text, cm, tm, fontDict, fontSize):
     xl = x - fontSize*len(text)
     dx = x - prev_x
     prev_x = x
-    print("dx={:0.0f} x={:0.0f} got |{}|".format(dx, x, text))
-
+    print(",".join([x, y, xr, xl]))
+    #print("dx={:0.0f} x={:0.0f} got |{}|".format(dx, x, text))
 
 reader = PdfReader("rptPirsum.pdf")
 
