@@ -6,9 +6,6 @@ import warnings
 
 # Written by Dan Pelleg
 
-# text file with column headers, one per line
-colnames_file = 'colnames-haifa.txt'
-
 def spaced(s):
     '''Add space at the begining of a string unless there is already one there'''
     if re.match(r'\s+', s):   # there is a space already
@@ -97,7 +94,7 @@ def fix_house_number(line):
     if line[8] in ['שכונת מורדות לינקולן', 'גבעת זמר', 'ענבר', 'טיילת פתאל', 'אבא חושי אוניברסיטת חיפה']:
         line.insert(9, '')
 
-def table_to_df(table_):
+def table_to_df(table_, colnames_file):
     table_ = table_[3:]          # strip header lines (we'll read the column names from a file)
     table = copy.deepcopy(table_)
     rej, rej_idx = fix_table(table)

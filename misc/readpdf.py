@@ -4,6 +4,7 @@ import pysnooper
 import pandas as pd
 from TableFixer import table_to_df
 import pickle
+import argparse
 
 # Written by Dan Pelleg
 
@@ -142,7 +143,13 @@ def visitor_body_dump_struct(text, cm, tm, fontDict, fontSize):
     print(",".join([x, y, xr, xl]))
     #print("dx={:0.0f} x={:0.0f} got |{}|".format(dx, x, text))
 
-reader = PdfReader("rptPirsum.pdf")
+parser = argparse.ArgumentParser(description="Read an excel-to-PDF file and save it as a dataframe")
+parser.add_argument("-i", "--input", default='rptPirsum.pdf', help="name of input PDF file")
+parser.add_argument("-o", "--output", default='df.csv', help="name of output CSV file")
+parser.add_argument("-c", "--colnames", default='colnames-haifa.txt', help='text file with column headers, one per line')
+config = vars(parser.parse_args())
+
+reader = PdfReader(config['input'])
 
 table = []
 debug = False
@@ -174,6 +181,7 @@ if debug:
             print(r)
     print(df.head())
 else:
-    df, rej = table_to_df(table)
-    df.to_pickle('df.pickle')
+    df, rej = table_to_df(table, config['colnames'])
+#    df.to_pickle('df.pickle')
+    df.to_csv('df.csv', index=False)
     print("Data saved, {} lines process, {} lines rejected".format(len(df), len(rej)))
