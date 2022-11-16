@@ -94,7 +94,7 @@ def fix_ils_sign(line):
 
 def fix_house_number(line):
     '''Patch a missing house number'''
-    if line[8] in ['שכונת מורדות לינקולן', 'גבעת זמר', 'ענבר', 'טיילת פתאל']:
+    if line[8] in ['שכונת מורדות לינקולן', 'גבעת זמר', 'ענבר', 'טיילת פתאל', 'אבא חושי אוניברסיטת חיפה']:
         line.insert(9, '')
 
 def table_to_df(table_):
