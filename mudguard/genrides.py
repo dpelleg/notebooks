@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import pandas as pd
@@ -18,7 +18,7 @@ from datetime import date, timedelta
 # Analyse segment statistics and generate an HTML table for public consumption
 
 
-# In[ ]:
+# In[2]:
 
 
 # gather data
@@ -32,7 +32,7 @@ rl_ = utils.get_ridelogs()
 md_meta = md[['id', 'name', 'distance', 'region_name', 'region_url', 'closest_ims']].copy()
 
 
-# In[ ]:
+# In[3]:
 
 
 d5 = rl_.copy()
@@ -44,7 +44,7 @@ d5 = d5.query('date == @latest_ridelog')
 d6 = d5.merge(md_meta, how='right', left_on=['segment_id'], right_on=['id'])
 
 
-# In[ ]:
+# In[4]:
 
 
 # If we run in the morning, then the ridelog data is only for yesterday. In this case, use weather data
@@ -56,14 +56,14 @@ else:
     reference_date = latest_ridelog
 
 
-# In[ ]:
+# In[5]:
 
 
 weather_days = ims.get_weather_days(reference_date=reference_date, ndays=3, n_data_files=10, save_stations=True)
 weather_days.drop(columns=['date'], inplace=True)  # we assume the date is the reference date we sent
 
 
-# In[ ]:
+# In[6]:
 
 
 # Add rain measurements to ride data
@@ -75,26 +75,26 @@ d7.rename(columns={'R01_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
 #d7['rain_3d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(3).sum().clip(lower=0))
 
 
-# In[ ]:
+# In[7]:
 
 
 d7[['segment_id', 'closest_ims', 'rain_3d', 'rain_mm']]
 
 
-# In[ ]:
+# In[8]:
 
 
 df_orig = d7.sort_values('date').copy()
 
 
-# In[ ]:
+# In[9]:
 
 
 # Load parameters fitted via a statistical model
 df = df_orig.copy()
 
 
-# In[ ]:
+# In[10]:
 
 
 # trim to just most recent observation
@@ -103,7 +103,7 @@ df_all = df.copy()
 today = df.copy()
 
 
-# In[ ]:
+# In[11]:
 
 
 if False:
@@ -116,7 +116,7 @@ if False:
     None
 
 
-# In[ ]:
+# In[12]:
 
 
 def scaleup(a, b):
@@ -136,7 +136,7 @@ def scalestr(v, scale, mycmp=scaleup):
             return s
 
 
-# In[ ]:
+# In[13]:
 
 
 # prepare for display as nice HTML
@@ -186,13 +186,13 @@ rideability_color = lambda x: '<div style="background-color: {}">{}</div>'.forma
 skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(trafficlight_riderskill(x), riderskill_string(x))
 
 
-# In[ ]:
+# In[14]:
 
 
 today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
 
 
-# In[ ]:
+# In[25]:
 
 
 dfout = today.sort_values(['region_name', 'name']).copy()
@@ -201,6 +201,7 @@ dfout = today.sort_values(['region_name', 'name']).copy()
 locale.setlocale(locale.LC_ALL, 'he_IL')
 
 dateout = latest_ridelog.strftime('יום %A %d/%m/%Y')
+dateout += ' שעה {}:00'.format(pd.to_datetime(pd.Timestamp.now(tz='Asia/Jerusalem')).hour)
 
 weekday_name = latest_ridelog.strftime('%A')
 
@@ -223,7 +224,7 @@ nrides_str = "מספר רכיבות <br> ביחס ליום %s ממוצע" % (wee
 
 dfout.rename(columns = {'link' : 'מקטע', 'region_link' : 'איזור',
                         'nrides' : nrides_str,
-                        'rain_mm' : 'מ״מ גשם <br>12 שעות', 'rain_3d' : 'מ״מ גשם<br>3 ימים',
+                        'rain_mm' : 'מ״מ גשם <br> 12 שעות', 'rain_3d' : 'מ״מ גשם<br>3 ימים',
                        },
              inplace=True)
 
