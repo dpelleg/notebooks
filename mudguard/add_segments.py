@@ -26,7 +26,7 @@ secret_file = 'tokens/strava_secret.json'
 with open(token_file) as json_file:
     strava_tokens = json.load(json_file)
 
-# If access_token has expired then 
+# If access_token has expired then
 # use the refresh_token to get the new access_token
 if strava_tokens['expires_at'] < time.time():# Make Strava auth API call with current refresh token
     print('refreshing token')
@@ -74,7 +74,7 @@ if(segment not in all_ids):
     r['active_strava'] = True
     r['active_html'] = True
     newpd = pd.DataFrame(pd.json_normalize(r))
-    segments = segments.append(newpd)
+    segments = pd.concat([segments, newpd])
 
 #
 segments.to_csv(segfile, float_format='%.5g', index=False)
