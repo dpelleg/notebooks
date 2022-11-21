@@ -143,7 +143,7 @@ def get_weather_days(additional_days, lookback_horizon=7):
 
 # compute averages per day of week, smoothed with neighboring month's data
 def get_mdow(mydf):
-    by_mdow = mydf.groupby(['segment_id', 'month', 'weekday']).mean().rename(columns={'rides' : 'rides_mdow'})
+    by_mdow = mydf.groupby(['segment_id', 'month', 'weekday']).mean(numeric_only=True).rename(columns={'rides' : 'rides_mdow'})
 
     mdow = None
     seglist = mydf['segment_id'].unique()
@@ -186,7 +186,7 @@ def tabulate_ridelogs(rl_, upper_nrides):
     d4['weekday'] = d4['date'].dt.weekday
     d4['month'] =   d4['date'].dt.month
 
-    by_dow = d4.groupby(['segment_id', 'weekday']).mean().rename(columns={'rides' : 'rides_dow'}).drop(columns='month')
+    by_dow = d4.groupby(['segment_id', 'weekday']).mean(numeric_only=True).rename(columns={'rides' : 'rides_dow'}).drop(columns='month')
     by_mdow = get_mdow(d4)
     d5 = d4.merge(by_dow, how='left', left_on=['segment_id', 'weekday'], right_on=['segment_id', 'weekday'], suffixes=('', '_y'))
     d5 = d5.merge(by_mdow, how='left', left_on=['segment_id', 'weekday', 'month'], right_on=['segment_id', 'weekday', 'month'])
@@ -226,7 +226,7 @@ def get_segment_metadata():
     #md.set_index('id', inplace=True)
     md['id'] = md['id'].map(str)
 
-    # Add closest climate station 
+    # Add closest climate station
     #TODO: cache the result and store back in segments file
 
     def parse_loc(x):

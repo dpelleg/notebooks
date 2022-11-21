@@ -4,6 +4,7 @@ import sys
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from datetime import datetime
+import gzip
 
 # download weather files from the Israeli Meteorolgical Service
 
@@ -53,5 +54,5 @@ if data:
     dt_str = now.strftime("%Y-%m-%d:%H:%M:%S")
     outdir = weather_dir + date_str
     os.makedirs(outdir, exist_ok=True)
-    with open(os.path.join(outdir, dt_str + '.xml'), 'w') as f:
+    with gzip.open(os.path.join(outdir, dt_str + '.xml.gz'), 'wt') as f:
         f.write(data)

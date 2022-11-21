@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import pandas as pd
@@ -18,7 +18,7 @@ from datetime import date, timedelta
 # Analyse segment statistics and generate an HTML table for public consumption
 
 
-# In[2]:
+# In[ ]:
 
 
 # gather data
@@ -32,143 +32,78 @@ rl_ = utils.get_ridelogs()
 md_meta = md[['id', 'name', 'distance', 'region_name', 'region_url', 'closest_ims']].copy()
 
 
-# In[3]:
+# In[ ]:
 
 
 d5 = rl_.copy()
+latest_ridelog = d5['date'].max().date()
+todays_date = pd.to_datetime(pd.Timestamp.now()).date()
+d5 = d5.query('date == @latest_ridelog')
 
 # add the closest IMS station
 d6 = d5.merge(md_meta, how='right', left_on=['segment_id'], right_on=['id'])
 
 
-# In[4]:
+# In[ ]:
 
 
-weather_days = utils.get_weather_days(d6)
+# If we run in the morning, then the ridelog data is only for yesterday. In this case, use weather data
+#  for the day following the last ridelog data
+# If we run in the evening, then the ridelog data should have already caught up.
+if todays_date > latest_ridelog:  
+    reference_date = latest_ridelog + timedelta(days=1)
+else:
+    reference_date = latest_ridelog
 
 
-# In[5]:
+# In[ ]:
+
+
+weather_days = ims.get_weather_days(reference_date=reference_date, ndays=3, n_data_files=10, save_stations=True)
+weather_days.drop(columns=['date'], inplace=True)  # we assume the date is the reference date we sent
+
+
+# In[ ]:
 
 
 # Add rain measurements to ride data
-d7 = d6.merge(weather_days, how='left', left_on=['closest_ims', 'date'], right_on=['closest_ims', 'date'])
-
+d7 = d6.merge(weather_days, how='left', left_on=['closest_ims'], right_on=['StationNumber'])
+d7.rename(columns={'R01_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
 # cumulative measures of rainfall
 
-d7.sort_values('date', inplace=True)
-d7['rain_3d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(3).sum().clip(lower=0))
+#d7.sort_values('date', inplace=True)
+#d7['rain_3d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(3).sum().clip(lower=0))
 
 
-# In[6]:
+# In[ ]:
 
 
-# we add another day of data, so we could predict based on simulated weather conditions
+d7[['segment_id', 'closest_ims', 'rain_3d', 'rain_mm']]
 
-lastdate = d7['date'].max()
 
-lastdate_copy = d7.query('date == @lastdate').copy()
-tomorrow = lastdate + timedelta(days=1)
+# In[ ]:
 
-lastdate_copy['date'] = tomorrow
-
-# we will optimistically assume no rain tomorrow
-# In case of NAs, we probably didn't get weather data. In this case better to invalidate the prediction too
-#  (bug: for the daycounter model, this will not stop it from still giving a prediction)
-lastdate_copy.loc[lastdate_copy['rain_mm'].notna(), 'rain_mm'] = 0
-
-# now add back
-d7 = pd.concat([d7, lastdate_copy], ignore_index=True)
 
 df_orig = d7.sort_values('date').copy()
 
 
-# In[7]:
+# In[ ]:
 
 
 # Load parameters fitted via a statistical model
 df = df_orig.copy()
 
-params = pd.read_csv('data/segments/params.csv')
 
-# apply moisture estimate to each segment
-df['soil_moisture'] = None
-df['pred'] = None
-
-segments = df['id'].unique()
-
-for seg in segments:
-    par = params.query("segment_id == @seg")
-    if len(par) > 0:
-        pdict = par.iloc[0].to_dict()
-        pdict.update(ast.literal_eval(par.iloc[0]['par']))
-        if(pdict['score'] >= 0.35):  # only try to predict if the quality of the model is good enough
-            rows = df['id'] == seg
-            coef = pdict['c_soil']
-            intercept = pdict['intercept']
-            # We compute the moisture value which yields 0.9 of the intercept (soil is 90% dry)
-            # We ignore the factors which aren't soil moisture (pessimistically assume they'll be zero throughout)
-            y90 = 0.9*intercept
-            if abs(coef) < 1e-6:
-                coef = -1e-6
-            x90 = (y90-intercept)/coef
-            if pdict['f'] == 'bathtub':
-                d = pdict['drainage']
-                c = pdict['capacity']
-                w = pdict['fwind']
-                moisture = utils.bathtub_(df[rows], capacity=c, drainage=d, fwind=w)
-                df.loc[rows, 'soil_moisture'] = moisture
-                df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : (r['soil_moisture'] - x90)/d, axis=1)
-            elif pdict['f'] == 'bathtub_geom':
-                d = pdict['drainage_factor']
-                c = pdict['capacity']
-                w = pdict['fwind']
-                moisture = utils.bathtub_geom_(df[rows], capacity=c, drainage_factor=d, fwind=w)
-                df.loc[rows, 'soil_moisture'] = moisture
-                df.loc[rows, 'dtd'] = df.loc[rows].apply(lambda r : 0 if r['soil_moisture'] < 1 else (math.log(y90) -math.log(r['soil_moisture']))/math.log(d), axis=1)
-            elif pdict['f'] == 'daycounter':
-                d = pdict['cday']
-                r = pdict['rain_thresh']
-                w = pdict['fwind']
-                moisture = utils.daycounter_(df[rows], cday=d, rain_thresh=r, fwind=w)
-                df.loc[rows, 'soil_moisture'] = moisture
-                df.loc[rows, 'dtd'] = d
-            else:
-                print("Uh")
-            # Predict level of usage on trail: compute the value of the function, given the soil moisture value
-            # (we take the other vars to be zero: rain per day, and lockdown)
-            # Normalize by the intercept, which is where the function is at x=0
-            df.loc[rows, 'pred'] = 1 + coef*df.loc[rows, 'soil_moisture']/intercept
+# In[ ]:
 
 
-# if parameters make no sense, also invalidae the nrides
-#rows = (df['capacity'] == 0) | (df['drainage'] == 0)
-#df.loc[rows, 'nrides'] = math.nan
-
-
-# In[8]:
-
-
-# trim to just most recent observation. This also includes the fake day which we added for prediction
+# trim to just most recent observation
 df_all = df.copy()
-df = df.query("date >= @lastdate").copy()
+#today = df.query("date == @lastdate").copy()
+today = df.copy()
 
 
-# In[9]:
-
-
-# average the prediction of the fake day and the last real day
-pred2 = df[['date', 'segment_id', 'pred']].fillna(math.nan).groupby(['segment_id'], as_index=False).mean()
-
-
-# In[10]:
-
-
-# put predicted value back for the last real day's prediction
-today = df.query("date == @lastdate").drop(columns='pred').copy()
-today_pred = today.merge(pred2, how='left', left_on='segment_id', right_on='segment_id')
-
-
-# In[11]:
+# In[ ]:
 
 
 if False:
@@ -181,7 +116,7 @@ if False:
     None
 
 
-# In[12]:
+# In[ ]:
 
 
 def scaleup(a, b):
@@ -201,7 +136,7 @@ def scalestr(v, scale, mycmp=scaleup):
             return s
 
 
-# In[13]:
+# In[ ]:
 
 
 # prepare for display as nice HTML
@@ -212,7 +147,7 @@ def nopct(s):
     return re.sub(r'%', '', s)
 
 def nonan(v):
-    if v is None or (type(v) == str and (v == "" or v =="nan")) or (isinstance(v, float) and math.isnan(v)):
+    if v is None or (type(v) == str and (v == "" or v == "nan" or v == "NaN")) or (isinstance(v, float) and (math.isnan(v) or v == -1)):
         return ""
     return v
 
@@ -251,23 +186,23 @@ rideability_color = lambda x: '<div style="background-color: {}">{}</div>'.forma
 skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(trafficlight_riderskill(x), riderskill_string(x))
 
 
-# In[14]:
+# In[ ]:
 
 
-today_pred[['name', 'rain_mm', 'wind_ms', 'rain_3d', 'soil_moisture', 'pred', 'closest_ims']].sort_values('pred')
+today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
 
 
-# In[15]:
+# In[ ]:
 
 
-dfout = today_pred.sort_values(['region_name', 'name']).copy()
+dfout = today.sort_values(['region_name', 'name']).copy()
 
 #format the date
 locale.setlocale(locale.LC_ALL, 'he_IL')
 
-dateout = lastdate.strftime('יום %A %d/%m/%Y')
+dateout = latest_ridelog.strftime('יום %A %d/%m/%Y')
 
-weekday_name = lastdate.strftime('%A')
+weekday_name = latest_ridelog.strftime('%A')
 
 # truncate name if too long
 max_name_len = 20
@@ -279,27 +214,20 @@ dfout['distance'] = dfout['distance'].map(lambda x : "%.0f" % x)
 dfout.drop(columns=['date', 'name', 'id', 'distance'], inplace=True)
 dfout['nrides'] = dfout['nrides'].map(lambda x : "" if math.isnan(x) else "%.0f%%" % (100*x))
 dfout['rain_mm'] = dfout['rain_mm'].map(lambda x : "" if math.isnan(x) else "%.1f" % x)
-dfout['wind_ms'] = dfout['wind_ms'].map(lambda x : "" if math.isnan(x) else "%.1f" % x)
 dfout['rain_3d'] = dfout['rain_3d'].map(lambda x : "%.0f" % x)
-dfout['days_to_dry'] = dfout['dtd'].map(lambda x : "%.1f" % x)
-dfout['pred'].fillna(math.nan, inplace=True)
-                                      
+                                 
 # re-order columns
-dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'rain_3d', 'pred']].copy()
+dfout = dfout[['link', 'region_link', 'nrides', 'rain_mm', 'rain_3d']].copy()
 
 nrides_str = "מספר רכיבות <br> ביחס ליום %s ממוצע" % (weekday_name)
-#dryness_str = 'מספר ימים <br>עד לייבוש'
-skill_str = 'דרגת נחישות'
 
 dfout.rename(columns = {'link' : 'מקטע', 'region_link' : 'איזור',
                         'nrides' : nrides_str,
-                        'rain_mm' : 'גשם יומי מ״מ', 'rain_3d' : 'גשם מצטבר  <br>3 ימים מ״מ',
-                        'wind_ms' : 'מהירות רוח יומי',
-                        'pred' : skill_str
+                        'rain_mm' : 'מ״מ גשם <br>12 שעות', 'rain_3d' : 'מ״מ גשם<br>3 ימים',
                        },
              inplace=True)
 
-htmlout = dfout.to_html(formatters={nrides_str: rideability_color, skill_str: skill_color},
+htmlout = dfout.to_html(formatters={nrides_str: rideability_color},
                         render_links=True, classes="table",
                         escape=False, index=False, border=1)
 
@@ -322,10 +250,4 @@ fileout = "data/out/rides.html"
 
 with open(fileout, "w", encoding="utf-8") as file:
     file.write(htmlout)
-
-
-# In[ ]:
-
-
-
 

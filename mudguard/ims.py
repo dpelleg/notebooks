@@ -8,6 +8,8 @@ from datetime import date, timedelta
 import xml.sax
 import pandas as pd
 import pickle
+import gzip
+
 # access functions to IMS API (Israeli climate agency)
 # From: https://ims.gov.il/he/CurrentDataXML
 # Doc: https://ims.gov.il/sites/default/files/2020-08/%D7%94%D7%A1%D7%91%D7%A8_%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D_%D7%A9%D7%A2%D7%AA%D7%99%D7%99%D7%9D_%D7%94%D7%97%D7%9C_01082018.pdf
@@ -95,7 +97,11 @@ def parse_file(filename):
     # override the default ContextHandler
     Handler = XMLHandler()
     parser.setContentHandler( Handler )
-    parser.parse(filename)
+    if re.search('\.gz$', filename):
+        file = gzip.open(filename, 'r')
+    else:
+        file = filename
+    parser.parse(file)
 
     stations = pd.DataFrame(data=Handler.stations).drop_duplicates()
     obs = pd.DataFrame(data=Handler.all_obs).drop_duplicates()
@@ -120,12 +126,10 @@ def load_weather_data(n_data_files=10, save_stations=False):
     # first get a list of all available weather files
     filelist = []
     weather_dir = os.path.join(datadir, 'weather')
-    pat=re.compile('\.xml$')
+    pat=re.compile('\.xml(.gz)?$')
     for root, dirs, files in os.walk(weather_dir):
         if files:
             filelist.extend([(root, name) for name in [f for f in files if pat.search(f)]])
-
-            filelist.extend([(root, name) for name in files])
     # We assume the file names are lexicographically ordered by date, eg YYYYMMDD
     filelist.sort(key=lambda e:e[1], reverse=True)
 
