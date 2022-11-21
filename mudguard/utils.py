@@ -74,6 +74,8 @@ def mdow_average(data_, colname, colvals, rowname, rowvals, idname):
             ret_id.append(idname)
             ret_day.append(day)
             ret_month.append(month_vals[month])
+            if v is None:
+                v=0.
             ret_val.append(v)
 
     ret = pd.DataFrame({ 'segment_id' : ret_id, 'weekday' : ret_day, 'month' : ret_month, 'rides_mdow' : ret_val})
