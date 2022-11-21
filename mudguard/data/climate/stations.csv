@@ -1,89 +1,92 @@
-,stationId,name,shortName,stationsTag,timebase,active,owner,regionId,StationTarget,lat,lon,channel_Rain,channel_WSmax,channel_WDmax,channel_WS,channel_WD,channel_STDwd,channel_TD,channel_RH,channel_TDmax,channel_TDmin,channel_TG,channel_WS1mm,channel_Ws10mm,channel_Time,channel_Grad,channel_DiffR,channel_NIP,channel_BP,channel_TW
-0,2,AVNE ETAN,AVNE ETA,(null),10,True,ims,8,,32.817,35.763,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-1,6,BET ZAYDA,BET ZAYD,(null),10,True,ims,9,,32.881,35.653,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-2,8,ZEMAH,ZEMAH,(null),10,True,ims,9,,32.704,35.584,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,w/m2,,,,
-3,10,MEROM GOLAN PICMAN,MEROM GO,(null),10,True,ims,8,,33.133,35.783,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,w/m2,,,,
-4,11,YAVNEEL,YAVNEEL,(null),10,True,ims,9,,32.683,35.516,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-5,13,TAVOR KADOORIE,TAVOR KA,(null),10,True,ims,8,,32.7,35.4,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,w/m2,,,,
-6,16,AFULA NIR HAEMEQ,AFULA NI,(null),10,True,ims,9,,32.597,35.278,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,,,,,,,,
-7,20,QARNE SHOMERON,QARNE SH,(null),10,True,ims,7,,32.166,35.099,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-8,21,ARIEL,ARIEL,(null),10,True,ims,7,,32.106,35.212,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-9,22,JERUSALEM GIVAT RAM,JERUSALE,(null),10,True,ims,7,,31.771,35.197,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,w/m2,w/m2,w/m2,,
-10,23,JERUSALEM CENTRE,JERUSALE,(null),10,True,ims,7,,31.781,35.222,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,mb,
-11,24,HAR HARASHA,HAR HARA,(null),10,True,ims,7,,31.933,35.15,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-12,25,NETIV HALAMED HE,NETIV HA,(null),10,True,ims,7,,31.683,34.983,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-13,28,SHANI,SHANI,(null),10,True,ims,7,,31.35,35.049,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-14,29,ARAD,ARAD,(null),10,True,ims,7,,31.251,35.186,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,w/m2,w/m2,w/m2,,
-15,30,GILGAL,GILGAL,(null),10,True,ims,9,,31.983,35.45,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-16,33,HAZEVA,HAZEVA,(null),10,True,ims,10,,30.51,35.14,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,,,,w/m2,w/m2,w/m2,,
-17,35,PARAN 20060124,PARAN 20,(null),10,True,ims,10,,40.45,35.15,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,,,,,,,,
-18,36,YOTVATA,YOTVATA,(null),10,True,ims,10,,29.886,35.078,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,w/m2,w/m2,w/m2,,
-19,41,HAIFA REFINERIES,HAIFA RE,(null),10,True,ims,15,,32.799,35.049,mm,,,,,,degC,%,degC,degC,,,,,,,,,
-20,42,HAIFA UNIVERSITY,HAIFA UN,(null),10,True,ims,11,,32.762,35.021,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-21,43,HAIFA TECHNION,HAIFA TE,(null),10,True,ims,11,,32.766,35.016,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,w/m2,w/m2,w/m2,,
-22,44,EN KARMEL,EN KARME,(null),10,True,ims,15,,32.682,34.96,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-23,45,ZIKHRON YAAQOV,ZIKHRON,(null),10,True,ims,11,,32.566,34.95,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-24,46,HADERA PORT,HADERA P,(null),10,True,ims,15,,32.474,34.883,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-25,54,BET DAGAN,BET DAGA,(null),10,True,ims,13,,32.009,34.814,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,mb,
-26,58,BESOR FARM,BESOR FA,(null),10,True,ims,14,,31.273,34.389,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,w/m2,w/m2,w/m2,,
-27,59,BEER SHEVA,BEER SHE,(null),10,True,ims,12,,31.333,34.783,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,mb,
-28,60,BEER SHEVA UNI,BEER SHE,(null),10,True,ims,12,,,,,,,,,,,,,,,,,,w/m2,w/m2,w/m2,,
-29,62,ZEFAT HAR KENAAN,ZEFAT HA,(null),10,True,ims,8,,32.982,35.507,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,mb,
-30,64,ELAT,ELAT,(null),10,True,ims,10,,29.553,34.954,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,w/m2,w/m2,w/m2,mb,
-31,65,SEDOM,SEDOM,(null),10,True,ims,10,,31.032,35.391,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,w/m2,w/m2,w/m2,mb,
-32,67,EN HASHOFET,EN HASHO,(null),10,True,ims,11,,32.633,35.099,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,w/m2,,,,
-33,73,ELON,ELON,(null),10,True,ims,8,,33.066,35.217,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,degC
-34,74,QEVUZAT YAVNE,QEVUZAT,(null),10,True,ims,14,,31.816,34.7,mm,,,,,,degC,%,degC,degC,,,,,,,,,
-35,75,BEIT JIMAL,BEIT JIM,(null),10,True,ims,7,,31.716,34.966,mm,,,,,,degC,%,degC,degC,,,,,,,,,
-36,77,ROSH ZURIM,ROSH ZUR,(null),10,True,ims,7,,31.665,35.124,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-37,78,AFEQ,AFEQ,(null),10,True,ims,15,,32.848,35.112,degC,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,mb,
-38,79,DOROT,DOROT,(null),10,True,ims,14,,31.5,34.633,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,w/m2,,,,
-39,82,NEGBA,NEGBA,(null),10,True,ims,14,,31.658,34.681,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,w/m2,,,,
-40,85,BET DAGAN RAD,BET DAGA,(null),10,True,ims,13,,,,,,,,,,,,,,,,,,w/m2,w/m2,w/m2,,
-41,89,SEDE BOQER UNI,SEDE BOQ,(null),10,True,ims,12,,30.85,34.7636,,,,,,,,,,,,,,,w/m2,w/m2,w/m2,,
-42,90,ITAMAR,ITAMAR,(null),10,True,ims,7,,32.166,35.349,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-43,98,SEDE BOQER,SEDE BOQ,(null),10,True,ims,12,,30.871,34.796,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-44,99,DEIR HANNA,DEIR HAN,(null),10,True,ims,8,,32.863,35.374,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-45,106,ROSH HANIQRA,ROSH HAN,(null),10,True,ims,15,,33.081,35.107,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-46,107,EN HAHORESH,EN HAHOR,(null),10,True,ims,15,,32.388,34.938,mm,,,,,,degC,%,degC,degC,degC,,,,,,,,
-47,112,ZOMET HANEGEV,ZOMET HA,(null),10,True,ims,12,,31.066,34.849,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-48,115,LEV KINERET,LEV KINE,(null),10,True,ims,9,,32.816,35.599,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-49,121,HAFEZ HAYYIM,HAFEZ HA,(null),10,True,ims,14,,31.793,34.804,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-50,123,AMMIAD,AMMIAD,(null),10,True,ims,8,,32.916,35.533,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-51,124,ASHDOD PORT,ASHDOD P,(null),10,True,ims,14,,31.835,34.638,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-52,178,TEL AVIV COAST,TEL AVIV,(null),10,True,ims,13,,32.059,34.759,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-53,186,NEWE YAAR,NEWE YAA,(null),10,True,ims,9,,32.709,35.179,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-54,188,ZOVA,ZOVA,(null),10,True,ims,7,,31.47,35.07,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-55,202,KEFAR BLUM,KEFAR BL,(null),10,True,ims,9,,33.173,35.613,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-56,205,ESHHAR,ESHHAR,(null),10,True,ims,8,,32.883,35.299,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-57,206,EDEN FARM,EDEN FAR,(null),10,True,ims,9,,32.47,35.489,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,w/m2,,,,
-58,207,PARAN,PARAN,(null),10,True,ims,10,,30.367,35.148,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-59,208,ASHQELON PORT,ASHQELON,(null),10,True,ims,14,,31.633,34.516,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-60,210,METZOKE DRAGOT,METZOKE,(null),10,True,ims,10,,31.583,35.383,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-61,211,EN GEDI,EN GEDI,(null),10,True,ims,10,,31.419,35.386,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-62,218,MAALE ADUMMIM,MAALE AD,(null),10,True,ims,7,,31.773,35.296,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-63,224,MAALE GILBOA,MAALE GI,(null),10,True,ims,7,,32.481,35.415,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-64,227,GAMLA,GAMLA,(null),10,True,ims,8,,32.907,35.748,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-65,228,BET HAARAVA,BET HAAR,(null),10,True,ims,10,,31.805,35.501,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-66,232,NEOT SMADAR,NEOT SMA,(null),10,True,ims,10,,30.048,35.023,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-67,233,KEFAR NAHUM,KEFAR NA,(null),10,True,ims,9,,32.883,35.579,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-68,236,GAT,GAT,(null),10,True,ims,14,,31.616,34.783,mm,,,,,,degC,%,degC,degC,degC,,,,,,,,
-69,241,KEFAR GILADI,KEFAR GI,(null),10,True,ims,8,,33.241,35.57,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-70,257,TEL YOSEF 20141223,TEL YOSE,(null),10,True,ims,9,,32.545,35.394,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-71,259,NAHSHON,NAHSHON,(null),10,True,ims,7,,31.834,34.961,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,degC,m/sec,m/sec,hhmm,,,,,
-72,263,GALED,GALED,(null),10,True,ims,11,,,,mm,,,,,,degC,%,degC,degC,degC,,,,,,,,
-73,264,MERHAVYA 20170702,MERHAVYA,(null),10,True,ims,9,,,,mm,,,,,,degC,%,degC,degC,,,,,,,,,
-74,265,MIZPE RAMON 20120927,MIZPE RA,(null),10,True,ims,12,,30.614,34.797,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-75,269,HARASHIM,HARASHIM,(null),10,True,ims,8,,32.956,35.328,mm,,,,,,degC,%,degC,degC,,,,,,,,,
-76,270,SHAARE TIQWA 20161205,SHAARE T,(null),10,True,ims,7,,32.127,35.026,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-77,271,AVDAT,AVDAT,(null),10,True,ims,12,,30.8,34.77,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-78,274,NIZZAN,NIZZAN,(null),10,True,ims,14,,31.733,34.635,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-79,275,HAKFAR HAYAROK,HAKFAR H,(null),5,True,iec,13,,,,mm,,,,,,degC,%,,,,,,,,,,,
-80,338,EZUZ,EZUZ,(null),10,True,ims,12,,30.791,34.472,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-81,343,SHAVE ZIYYON,SHAVE ZI,(null),10,True,ims,15,,32.98,35.09,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-82,348,DAFNA,DAFNA,(null),10,True,ims,9,,33.23,35.6,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-83,349,NEVATIM,NEVATIM,(null),10,True,ims,12,,31.205,34.922,mm,m/sec,deg,m/sec,deg,deg,degC,%,degC,degC,,m/sec,m/sec,hhmm,,,,,
-84,350,LAHAV,LAHAV,(null),10,True,ims,12,,31.3,34.87,mm,,,,,,degC,%,degC,degC,degC,,,,,,,,
-85,353,AYYELET HASHAHAR,AYYELET,(null),10,True,ims,9,,33.02,35.57,mm,,,,,,degC,%,degC,degC,degC,,,,,,,,
-86,355,MASSADA,MASSADA,(null),10,True,ims,9,,32.67,35.6,mm,,,,,,degC,%,degC,degC,degC,,,,,,,,
-87,366,SEDE ELIYYAHU,SEDE ELI,(null),10,True,ims,9,,32.44,35.51,mm,,,,,,degC,%,degC,degC,degC,,,,,,,,
+StationNumber,StationName,StationLongitude,StationLatitude,StationIsraelX,StationIsraelY,StationHeight
+153,Zefat Har Kenaan,35.507,32.98,247732,765030,936
+174,Herzliyya Airport,34.834,32.1803,184514,676365,32
+179,Bet Dagan,34.8138,32.0073,182539,657187,31
+180,Lod Airport,34.8828,32.0094,189060,657399,41
+412,Mahanayim Airport,35.5719,32.981,253798,765161,277
+495,Ramon Airport,35.0117,29.7137,200799,402849,82
+502,Merom Golan Picman,35.8045,33.1288,275447,781653,945
+503,Ayyelet Hashahar,35.5735,33.0244,253931,769974,170
+506,Harashim,35.3287,32.956,231068,762335,830
+507,Shave Ziyyon,35.0923,32.9836,208968,765395,5
+511,Afeq,35.1123,32.8466,210824,750199,10
+515,Haifa Refineries,35.0548,32.8034,205434,745414,5
+516,Bet Zayda,35.6504,32.88,261183,753987,-200
+517,Avne Etan,35.7622,32.8174,271682,747095,375
+518,Haifa University,35.0208,32.7611,202242,740728,475
+519,Haifa Technion,35.0223,32.7736,202385,742114,245
+520,Yavneel,35.5101,32.6978,248112,733734,0
+521,Tavor Kadoorie,35.4069,32.7053,238433,734543,145
+523,En Hashofet,35.0964,32.6028,209308,723163,265
+524,En Karmel,34.9594,32.6808,196468,731834,25
+526,Afula Nir Haemeq,35.2769,32.596,226252,722406,60
+528,Zikhron Yaaqov,34.9546,32.5724,195989,719814,175
+529,Hadera Port,34.8815,32.4732,189092,708831,5
+530,Tel Yosef,35.3945,32.5462,237302,716897,-65
+531,Sede Eliyyahu,35.5106,32.439,248241,705034,-185
+532,Eden Farm,35.4888,32.4679,246183,708233,-120
+539,Hakfar Hayarok,34.8324,32.13,184344,670787,65
+541,Qarne Shomeron,35.0959,32.1752,209213,675744,330
+542,Itamar,35.3513,32.1598,233303,674041,820
+545,Har Harasha,35.1499,31.9449,214293,650203,770
+547,Gilgal,35.4509,31.9973,242739,656038,-255
+550,Nahshon,34.9616,31.8341,196461,637941,180
+551,Jerusalem Givat Ram,35.1973,31.7704,218773,630852,770
+554,Bet Haarava,35.501,31.8052,247532,634749,-330
+556,Ashdod Port,34.6377,31.8342,165800,638066,5
+557,Beit Jimal,34.9762,31.7248,197818,625818,355
+559,Gat,34.7913,31.6003,180242,612065,140
+560,Netiv Halamed He,34.9744,31.6898,197639,621938,275
+562,Dorot,34.648,31.5036,166588,601403,115
+563,Shani,35.0662,31.3568,206296,585000,700
+564,En Gedi,35.3871,31.42,236818,592013,-415
+565,Besor Farm,34.3894,31.2716,141829,575832,110
+567,Lahav,34.8729,31.3812,187912,587745,460
+568,Nevatim,34.9227,31.205,192600,568195,350
+569,Beer Sheva University,34.7995,31.2515,180877,573387,300
+576,Ezuz,34.4715,30.7911,149297,522501,335
+577,Avdat,34.7712,30.7877,177981,521975,555
+582,Mizpe Ramon,34.8046,30.6101,181108,502273,845
+588,Neot Smadar,35.0233,30.048,201980,439905,400
+594,Yotvata,35.0771,29.8851,207149,421840,70
+602,Dafna,35.635,33.2277,259584,792544,135
+603,Kefar Giladi,35.5696,33.2404,253483,793930,365
+604,Kefar Blum,35.6133,33.1716,257585,786314,75
+606,Zefat Har Kenaan,35.507,32.98,247732,765030,936
+607,Elon,35.2173,33.0653,220651,774450,300
+608,Rosh Haniqra,35.1079,33.0806,210436,776151,10
+612,Gamla,35.7487,32.9052,270368,756825,405
+613,Ammiad,35.5135,32.915,248360,757823,215
+614,Eshhar,35.3015,32.8844,228532,754391,370
+616,Deir Hanna,35.3741,32.8621,235330,751927,280
+617,Kefar Nahum,35.5792,32.8835,254519,754350,-200
+619,Newe Yaar,35.1784,32.7078,217008,734802,115
+620,Massada,35.6008,32.6833,256623,732154,-200
+621,Zemah,35.5839,32.7024,255031,734267,-200
+628,Maale Gilboa,35.415,32.481,239242,709670,495
+630,Galed,35.0725,32.5564,207058,718020,180
+634,En Hahoresh,34.9376,32.3877,194342,699335,15
+639,Ariel,35.2114,32.1056,220107,668021,685
+642,Maale Adummim,35.2961,31.774,228132,631255,490
+644,Tel Aviv Coast,34.7588,32.058,177366,662830,10
+645,Bet Dagan,34.8138,32.0073,182539,657187,31
+646,Bet Dagan,34.8138,32.0073,182539,657187,31
+652,Jerusalem Centre,35.2217,31.7806,221085,631983,810
+653,Nizzan,34.6348,31.7319,165466,626724,30
+654,Qevuzat Yavne,34.7244,31.8166,173998,636075,50
+655,Hafez Hayyim,34.805,31.791,181619,633205,80
+656,Zova,35.1258,31.7878,212002,632784,710
+658,Negba,34.6798,31.6585,169691,618564,95
+661,Rosh Zurim,35.1233,31.6644,211755,619101,950
+662,Metzoke Dragot,35.3916,31.5881,237214,610653,20
+663,Arad,35.1855,31.25,217646,573150,564
+665,Ashqelon Port,34.5215,31.6394,154664,616529,5
+669,Beer Sheva,34.7995,31.2515,180877,573387,279
+671,Ashalim,34.7079,30.9831,172019,543664,305
+672,Zomet Hanegev,34.8513,31.0708,185748,553335,360
+674,Sede Boqer,34.795,30.8702,180293,531113,475
+678,Sedom,35.3919,31.0306,237347,548840,-388
+679,Hazeva,35.2389,30.7787,222748,520897,-135
+687,Paran,35.1479,30.3655,214014,475089,100
+699,Elat,34.9517,29.5528,194955,385025,21
+725,Haifa Airport,35.0431,32.8094,204340,746081,5

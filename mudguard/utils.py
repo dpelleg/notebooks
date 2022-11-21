@@ -95,15 +95,15 @@ def get_weather_days(additional_days, lookback_horizon=7):
             return get_weather_day_helper(r)
         else:
             return r
-        
+
     def get_weather_day_helper(r):
         if(pd.isnull(r['date'])): # This could happen if we just added a segment, but no ride logs had been associated with it yet
             return None
-            
+
         if (pd.to_datetime('today') - r['date']).days > lookback_horizon:   # if the missing data is for a date far in the past, stop asking, it's unlikely to appear
             return None
 
-        c_ims = r['closest_ims'] 
+        c_ims = r['closest_ims']
         if type(c_ims) == float:
             c_ims = '%.0f' % c_ims
 
@@ -135,7 +135,7 @@ def get_weather_days(additional_days, lookback_horizon=7):
 
     for k in newkeys:
         weather_days[k] = newcols[k]
-    
+
     # cache values for next time
     weather_days.dropna(inplace=True)
     weather_days.to_csv(datadir + weather_file, index=False, float_format='%.3g')
@@ -202,7 +202,7 @@ def tabulate_ridelogs(rl_, upper_nrides):
     return d5
 
 def get_ridelogs(upper_nrides = 2.0):
-    
+
     rl_ = None
 
     # Read usage records
@@ -223,10 +223,8 @@ def get_ridelogs(upper_nrides = 2.0):
 
 def get_segment_metadata():
     md = pd.read_csv(datadir + segfile)
-    # md.drop(columns='Unnamed: 0', inplace=True)
     #md.set_index('id', inplace=True)
     md['id'] = md['id'].map(str)
-
 
     # Add closest climate station 
     #TODO: cache the result and store back in segments file
@@ -247,9 +245,9 @@ def get_segment_metadata():
         ALL={'id' : 'ALL', 'name' : 'ALL'}
         ALL.update(md[['lat', 'lon']].mean().to_dict())
         md = md.append(ALL, ignore_index=True)
-    
+
     md['closest_ims'] = None
-    # fill closest station 
+    # fill closest station
     md['closest_ims'] = md.apply(lambda r : find_closest(r) if pd.isnull(r['closest_ims']) else r['closest_ims'], axis=1)
 
     return md

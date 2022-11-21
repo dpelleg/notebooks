@@ -1,163 +1,172 @@
-import json
 import requests
 import datetime
 import os
 import sys
-import pandas as pd
 import time
-from urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter
-
+import re
+from datetime import date, timedelta
+import xml.sax
+import pandas as pd
+import pickle
 # access functions to IMS API (Israeli climate agency)
-# Doc: https://ims.gov.il/he/ObservationDataAPI  (a copy of which should reside in this source tree as well)
+# From: https://ims.gov.il/he/CurrentDataXML
+# Doc: https://ims.gov.il/sites/default/files/2020-08/%D7%94%D7%A1%D7%91%D7%A8_%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D_%D7%A9%D7%A2%D7%AA%D7%99%D7%99%D7%9D_%D7%94%D7%97%D7%9C_01082018.pdf
+#   (a copy of which should reside in this source tree as well)
 
-# This is the threshold hour for daily rain amount calculations
-threshold_hour = 19
+datadir = 'data/'
 
-ims_token = None
+# import data from the IMS
+# Default URL: https://ims.gov.il/sites/default/files/ims_data/xml_files/observ.xml
+#   This should update hourly, about 30 mins after the hour, and have observations for 3 hours back
 
-ims_cache = {}
+class XMLHandler(xml.sax.ContentHandler):
+    def __init__(self):
+        self.stations = []
+        self.cur_station = None
+        self.cur_station_id = None
+        self.state = []
+        self.station_key = None
+        self.content = ''
+        self.all_obs = []
 
-tz_here = 'Asia/Jerusalem'
-# Note: used both for the IMS API, and for our own internal cache keying
-date_format = "%Y/%m/%d"
+   # Call when an element starts
+    def startElement(self, tag, attributes):
+        self.content = ''
+        self.state.append(tag)
+        if tag == "Station":
+            #assert(self.state is None)
+            self.cur_station = {}
+            return
+        if tag == "Observation":
+            self.obs = {}
+            return
+        if len(self.state) > 1 and self.state[-2] == 'Station':
+            self.station_key = tag
+            return
 
-token_file = 'tokens/ims_token.json'
+   # Call when an element ends
+    def endElement(self, tag):
+        last_state = self.state.pop()
+        last_content = self.content.strip()
+        prev_state = ''
+        if len(self.state) >= 1:
+            prev_state = self.state[-1]
 
-# Get the tokens from file
-with open(token_file) as json_file:
-    ims_tokens = json.load(json_file)
+        if tag == "Station":
+            assert(last_state == tag)
+            self.stations.append(self.cur_station)
+            self.cur_station_id = self.cur_station['StationNumber']
+            self.cur_station = None
+            return
+        if tag == "DateTime":
+            self.obs[tag] = last_content
+            return
 
-ims_token = ims_tokens['token']
+        if prev_state == "Observation":
+            if tag == "Parameter":
+                self.obs[self.parm_name] = self.parm_val
+        prev_prev_state = ''
+        if len(self.state) >= 2:
+            prev_prev_state = self.state[-2]
+        if prev_prev_state == "Observation":
+            if tag == "ParameterShortName":
+                self.parm_name = last_content
+            if tag == "ParameterValue":
+                self.parm_val = last_content
+        if prev_state == 'Station':   # one more station parameter
+            self.cur_station[self.station_key] = last_content
+            return
+        if tag == "Observation":
+            self.obs['StationNumber'] = self.cur_station_id
+            self.all_obs.append(self.obs)
+            return
 
-headers = {
-  'Authorization': 'ApiToken ' + ims_token
-}
+   # Call when a character is read
+    def characters(self, content):
+        self.content += content
 
-def retry_session(retries, session=None, backoff_factor=0.3):
-    session = session or requests.Session()
-    retry = Retry(
-        total=retries,
-        read=retries,
-        connect=retries,
-        backoff_factor=backoff_factor,
-        allowed_methods=False,
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    return session
+def parse_file(filename):
+    # create an XMLReader
+    parser = xml.sax.make_parser()
 
-session = retry_session(retries=5)
+    # turn off namepsaces
+    parser.setFeature(xml.sax.handler.feature_namespaces, 0)
 
-def httpreq(urlsuff):
-    MAX_RETRY = 3
-    retries = 0
+    # override the default ContextHandler
+    Handler = XMLHandler()
+    parser.setContentHandler( Handler )
+    parser.parse(filename)
 
-    url = "https://api.ims.gov.il/v1/envista/" + urlsuff
+    stations = pd.DataFrame(data=Handler.stations).drop_duplicates()
+    obs = pd.DataFrame(data=Handler.all_obs).drop_duplicates()
+    obs = obs.apply(pd.to_numeric, errors='ignore')
+    fix_units(obs)
+    obs['DateTime'] = pd.to_datetime(obs['DateTime'])
+    return stations, obs
 
-    try:
-        response = session.get(url=url, headers=headers)
-        # requests.request("GET", url, headers=headers)
-        data=response.text.encode('utf8')
-        return data
-    except ConnectionEror:
-        return None
+def fix_unit(df, unit_name, factor):
+    if unit_name in df.columns:
+        df[unit_name] = df[unit_name]*factor
 
-    return None
+def fix_units(df):
+    # tenths
+    for u in ['FF', 'TT', 'TD', 'PO', 'PP', 'PP1', 'PP3', 'R01', 'R12', 'R24', 'TW', 'TX', 'TN', 'EEE', 'TWE', 'TG', 'RRS']:
+        fix_unit(df, u, 0.1)
+    # halves
+    for u in ['HW']:
+        fix_unit(df, u, 0.5)
 
-def stations_metadata():
-    return httpreq("stations/")
+def load_weather_data(n_data_files=10, save_stations=False):
+    # first get a list of all available weather files
+    filelist = []
+    weather_dir = os.path.join(datadir, 'weather')
+    pat=re.compile('\.xml$')
+    for root, dirs, files in os.walk(weather_dir):
+        if files:
+            filelist.extend([(root, name) for name in [f for f in files if pat.search(f)]])
 
-def climate_bydate(station, date):
-    ret = httpreq("stations/{}/data/daily/{}".format(station, date.strftime(date_format)))
-    return ret
+            filelist.extend([(root, name) for name in files])
+    # We assume the file names are lexicographically ordered by date, eg YYYYMMDD
+    filelist.sort(key=lambda e:e[1], reverse=True)
 
-def get_climate_day(station, date):
-    global ims_cache
+    # read and collate the the N most recent files
+    stations_to_save = None
+    all = []
+    for f in filelist[:n_data_files]:
+        fname = os.path.join(f[0], f[1])
+        stations, obs = parse_file(fname)
+        if stations_to_save is None:
+            stations_to_save = stations
+        all.append(obs.copy())
+    if save_stations:
+        # save a copy of the stations file
+        stations_to_save.to_csv(os.path.join(datadir, 'climate', 'stations.csv'), index=False)
 
-    cache_key = "{}##{}".format(station, date.strftime(date_format))
+    all = pd.concat(all).drop_duplicates()
+    return all
 
-    if cache_key in ims_cache:
-        data = ims_cache[cache_key]
-    else:  # cache miss
-        print(cache_key)
-        data = climate_bydate(station, date)
-        #print(data)
-        if(len(data) > 0):
-            data=json.loads(data)
-            # update cache
-            ims_cache[cache_key] = data
-        else:
-            data = None
+def get_weather_days(reference_date, ndays=3, n_data_files=10, save_stations=False):
+    '''Aggregate the most recent weather data, and return the metrics for the last few days.
+    '''
+    reference_date = pd.to_datetime(reference_date)
+    df = load_weather_data(n_data_files, save_stations)
+    # Remove the hour and leave just the date, this is the data resoultion we have for the ride logs
+    df['date'] = pd.to_datetime(df['DateTime'].dt.date)
 
-    return data
+    if reference_date is None:
+        # Take the latest report
+        latest_date = df['date'].max()
+        reference_date = lastest_date
+    # Because there are usually multiple observations per date, we pick the one with the latest time within that date
+    reference_time = df.query('date == @reference_date')['DateTime'].max()
+    df_ref=df.query("DateTime == @reference_time")
 
-def ims_to_dictlist(data):
-    dl = []
-    stationId = data['stationId']
-    data = data['data']
+    # cumulative rain over X days
+    cutoff_date = reference_date + timedelta(days=-ndays)
+    after_cutoff = df.query("date > @cutoff_date & date <= @reference_date")
+    sum_after_cutoff = after_cutoff.fillna(0).groupby(['StationNumber'])[['R01']].sum().rename(columns={'R01': 'R01_sum'})
 
-    for row in data:
-        datetime = row['datetime']
-        for channel in row['channels']:
-            dict = channel.copy()
-            dict['stationId'] = stationId
-            dict['datetime'] = datetime
-            dl.append(dict)
-    return dl
-
-# given a date, return the amount of rain in the 24-hour period ending on the threshold hour on that date
-def get_weather_day(station, date):
-
-    def get_valid(df, colname):
-        valid = df.query("valid and name==@colname")
-        if(len(valid) < 50):  # not enough data
-            return None
-        return valid
-
-    ret= { 'rain_mm' : None, 'wind_ms' : None, 'temp_deg' : None, 'rain_morning' : None, 'wind_morning' : None, 'temp_morning' : None}
-
-    # get the list of dates we need to query
-    try:
-        yesterdate = date - datetime.timedelta(days=1)
-        d1 = get_climate_day(station, date)
-        d2 = get_climate_day(station, yesterdate)
-        dlist = ims_to_dictlist(d1)
-        # merge
-        dlist.extend(ims_to_dictlist(d2))
-        df = pd.DataFrame(dlist)
-        df['datetime'] = pd.to_datetime(df['datetime'], utc=True).dt.tz_convert(tz_here)
-        end_ts = pd.to_datetime(datetime.datetime.combine(date, datetime.time(19, 0))).tz_localize(tz_here)
-        start_ts = end_ts - datetime.timedelta(days=1, seconds=-1)
-
-        end_ts_morning = pd.to_datetime(datetime.datetime.combine(date, datetime.time(10, 0))).tz_localize(tz_here)
-        start_ts_morning = pd.to_datetime(datetime.datetime.combine(date, datetime.time(0, 0))).tz_localize(tz_here)
-
-        valid = get_valid(df, 'Rain')
-        if(valid is not None):  # only if we have enough data
-            idxlist = valid['datetime'].between(start_ts, end_ts)
-            ret['rain_mm'] = valid['value'][idxlist].sum()
-            idxlist = valid['datetime'].between(start_ts_morning, end_ts_morning)
-            ret['rain_morning'] = valid['value'][idxlist].sum()
-
-        valid = get_valid(df, 'WS')
-        if(valid is not None):  # only if we have enough data
-            idxlist = valid['datetime'].between(start_ts, end_ts)
-            ret['wind_ms'] = valid['value'][idxlist].mean()
-            idxlist = valid['datetime'].between(start_ts_morning, end_ts_morning)
-            ret['wind_morning'] = valid['value'][idxlist].mean()
-
-        valid = get_valid(df, 'TD')
-        if(valid is not None):  # only if we have enough data
-            idxlist = valid['datetime'].between(start_ts, end_ts)
-            ret['temp_deg'] = valid['value'][idxlist].mean()
-            idxlist = valid['datetime'].between(start_ts_morning, end_ts_morning)
-            ret['temp_morning'] = valid['value'][idxlist].mean()
-
-    except TypeError:
-        return ret
-    return ret
+    return df_ref.merge(sum_after_cutoff, on='StationNumber')
 
 if __name__ == "__main__":
     # change dir to the script's dir
@@ -165,8 +174,10 @@ if __name__ == "__main__":
 #    print(climate_bydate("67", datetime.date(2020, 12, 5)))
 #    print(get_weather_day("64", datetime.date(2020, 12, 1)))
 #    print(get_weather_day("67", datetime.date(2021, 3, 26)))
-    print(get_climate_day("67", datetime.date(2021, 3, 26)))
+    #print(get_climate_day("67", datetime.date(2021, 3, 26)))
     #foo = pd.DataFrame(ims_to_dictlist(get_climate_day("259", datetime.date(2020, 12, 23))))
     #foo.to_csv('foo.csv')
     #d1 = datetime.date(2020, 11, 27)
     #d2 = datetime.time(19, 00)
+    r = get_weather_days(reference_date='2022-11-20', ndays=3, n_data_files=20, save_stations=True)  [['StationNumber', 'DateTime', 'R12', 'R01_sum']].sort_values('R01_sum', ascending=False)
+    print(r)
