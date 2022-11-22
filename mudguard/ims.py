@@ -144,6 +144,7 @@ def load_weather_data(n_data_files=10, save_stations=False):
         all.append(obs.copy())
     if save_stations:
         # save a copy of the stations file
+        stations_to_save.sort_values('StationNumber', inplace=True)
         stations_to_save.to_csv(os.path.join(datadir, 'climate', 'stations.csv'), index=False)
 
     all = pd.concat(all).drop_duplicates()
@@ -170,7 +171,7 @@ def get_weather_days(reference_date, ndays=3, n_data_files=10, save_stations=Fal
     after_cutoff = df.query("date > @cutoff_date & date <= @reference_date")
     sum_after_cutoff = after_cutoff.fillna(0).groupby(['StationNumber'])[['R01']].sum().rename(columns={'R01': 'R01_sum'})
 
-    return df_ref.merge(sum_after_cutoff, on='StationNumber')
+    return df_ref.merge(sum_after_cutoff, on='StationNumber'), reference_time.tz_localize(tz='UTC')
 
 if __name__ == "__main__":
     # change dir to the script's dir
