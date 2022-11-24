@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import pandas as pd
@@ -18,7 +18,7 @@ from datetime import date, timedelta
 # Analyse segment statistics and generate an HTML table for public consumption
 
 
-# In[2]:
+# In[ ]:
 
 
 # gather data
@@ -32,7 +32,7 @@ rl_ = utils.get_ridelogs()
 md_meta = md[['id', 'name', 'distance', 'region_name', 'region_url', 'closest_ims']].copy()
 
 
-# In[3]:
+# In[ ]:
 
 
 d5 = rl_.copy()
@@ -44,7 +44,7 @@ d5 = d5.query('date == @latest_ridelog')
 d6 = d5.merge(md_meta, how='right', left_on=['segment_id'], right_on=['id'])
 
 
-# In[4]:
+# In[ ]:
 
 
 # If we run in the morning, then the ridelog data is only for yesterday. In this case, use weather data
@@ -56,54 +56,35 @@ else:
     reference_date = latest_ridelog
 
 
-# In[5]:
+# In[ ]:
 
 
-weather_days = ims.get_weather_days(reference_date=reference_date, ndays=3, n_data_files=10, save_stations=True)
+weather_days, weather_ts = ims.get_weather_days(reference_date=reference_date, ndays=3, n_data_files=10, save_stations=True)
 weather_days.drop(columns=['date'], inplace=True)  # we assume the date is the reference date we sent
 
 
-# In[6]:
+# In[ ]:
 
 
 # Add rain measurements to ride data
 d7 = d6.merge(weather_days, how='left', left_on=['closest_ims'], right_on=['StationNumber'])
 d7.rename(columns={'R01_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
-# cumulative measures of rainfall
-
-#d7.sort_values('date', inplace=True)
-#d7['rain_3d'] = d7.fillna(0).groupby('segment_id')['rain_mm'].apply(lambda x : x.rolling(3).sum().clip(lower=0))
 
 
-# In[7]:
+# In[ ]:
 
 
-d7[['segment_id', 'closest_ims', 'rain_3d', 'rain_mm']]
+#d7[['segment_id', 'closest_ims', 'rain_3d', 'rain_mm']]
 
 
-# In[8]:
+# In[ ]:
 
 
 df_orig = d7.sort_values('date').copy()
+today = df_orig.copy()
 
 
-# In[9]:
-
-
-# Load parameters fitted via a statistical model
-df = df_orig.copy()
-
-
-# In[10]:
-
-
-# trim to just most recent observation
-df_all = df.copy()
-#today = df.query("date == @lastdate").copy()
-today = df.copy()
-
-
-# In[11]:
+# In[ ]:
 
 
 if False:
@@ -116,7 +97,7 @@ if False:
     None
 
 
-# In[12]:
+# In[ ]:
 
 
 def scaleup(a, b):
@@ -136,7 +117,7 @@ def scalestr(v, scale, mycmp=scaleup):
             return s
 
 
-# In[13]:
+# In[ ]:
 
 
 # prepare for display as nice HTML
@@ -186,22 +167,36 @@ rideability_color = lambda x: '<div style="background-color: {}">{}</div>'.forma
 skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(trafficlight_riderskill(x), riderskill_string(x))
 
 
-# In[14]:
+# In[ ]:
 
 
-today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
+#today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
 
 
-# In[25]:
+# In[ ]:
+
+
+locale.setlocale(locale.LC_ALL, 'he_IL')
+def prettify_date(ts_, also_tod=False):
+    if type(ts_) is not pd.Timestamp:
+        ts_ = pd.Timestamp(ts_, tz='UTC')
+    ts = ts_.astimezone(tz='Asia/Jerusalem')
+    
+    ret = ts.strftime('יום %A %d/%m/%Y')
+    if also_tod:
+        ret += ts.strftime(' שעה %H:%M')
+
+    return ret
+
+
+# In[ ]:
 
 
 dfout = today.sort_values(['region_name', 'name']).copy()
 
 #format the date
-locale.setlocale(locale.LC_ALL, 'he_IL')
-
-dateout = latest_ridelog.strftime('יום %A %d/%m/%Y')
-dateout += ' שעה {}:00'.format(pd.to_datetime(pd.Timestamp.now(tz='Asia/Jerusalem')).hour)
+data_ts_str = "רכיבות {}".format(prettify_date(latest_ridelog))
+data_ts_str += ", מזג אויר {}".format(prettify_date(weather_ts, also_tod=True))
 
 weekday_name = latest_ridelog.strftime('%A')
 
@@ -236,7 +231,7 @@ htmlout = dfout.to_html(formatters={nrides_str: rideability_color},
 # Add decorations and save to file
 
 title = 'מדד בוציות בסינגלים'
-update_ts = '<br><b>' +  "עדכון אחרון: {}".format(dateout) + '</b></br>\n'
+update_ts = '<br><b>' +  "עדכון אחרון: {}".format(data_ts_str) + '</b></br>\n'
 
 with open('preamble.txt', encoding="utf-8") as f:
     preamble = " ".join([l.rstrip() for l in f]) 

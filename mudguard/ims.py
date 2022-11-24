@@ -162,16 +162,22 @@ def get_weather_days(reference_date, ndays=3, n_data_files=10, save_stations=Fal
         # Take the latest report
         latest_date = df['date'].max()
         reference_date = lastest_date
+
     # Because there are usually multiple observations per date, we pick the one with the latest time within that date
-    reference_time = df.query('date == @reference_date')['DateTime'].max()
-    df_ref=df.query("DateTime == @reference_time")
+
+    # First, create a version of the data with just one observation per station per date (most recent)
+    df_bydate = df.sort_values('DateTime', ascending=False).drop_duplicates(['StationNumber', 'date'])
+    # Filter to just the date in question
+    reference_df = df_bydate.query('date == @reference_date')
+    # Also save the maximal observation time to return to the caller
+    reference_time = reference_df['DateTime'].max()
 
     # cumulative rain over X days
     cutoff_date = reference_date + timedelta(days=-ndays)
     after_cutoff = df.query("date > @cutoff_date & date <= @reference_date")
     sum_after_cutoff = after_cutoff.fillna(0).groupby(['StationNumber'])[['R01']].sum().rename(columns={'R01': 'R01_sum'})
 
-    return df_ref.merge(sum_after_cutoff, on='StationNumber'), reference_time.tz_localize(tz='UTC')
+    return reference_df.merge(sum_after_cutoff, on='StationNumber'), reference_time.tz_localize(tz='UTC')
 
 if __name__ == "__main__":
     # change dir to the script's dir
