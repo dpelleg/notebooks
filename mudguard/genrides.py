@@ -66,9 +66,15 @@ weather_days.drop(columns=['date'], inplace=True)  # we assume the date is the r
 # In[ ]:
 
 
+#weather_days.query('StationNumber == 567')[['R01', 'R12', 'R24', 'R24_sum']]
+
+
+# In[ ]:
+
+
 # Add rain measurements to ride data
 d7 = d6.merge(weather_days, how='left', left_on=['closest_ims'], right_on=['StationNumber'])
-d7.rename(columns={'R01_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
+d7.rename(columns={'R24_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
 
 
 # In[ ]:
