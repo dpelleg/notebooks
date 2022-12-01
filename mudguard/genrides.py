@@ -176,7 +176,13 @@ skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(traf
 # In[ ]:
 
 
-#today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
+today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
+
+
+# In[ ]:
+
+
+str(latest_ridelog)
 
 
 # In[ ]:
@@ -184,6 +190,8 @@ skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(traf
 
 locale.setlocale(locale.LC_ALL, 'he_IL')
 def prettify_date(ts_, also_tod=False):
+    if str(ts_) == 'NaT':
+        return 'אין נתונים'
     if type(ts_) is not pd.Timestamp:
         ts_ = pd.Timestamp(ts_, tz='UTC')
     ts = ts_.astimezone(tz='Asia/Jerusalem')
