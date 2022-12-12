@@ -18,6 +18,29 @@ class TextBox:
     def make_blank_textbox():
         return TextBox('', None, None, None, None)
 
+    def to_dict(self):
+        d = {}
+        txt_nows = self.text.strip()
+        x = self.tm[4]
+        y = self.tm[5]
+        d['len'] = len(self.text)
+        d['int'] = bool(re.match('\d+$', txt_nows))
+        d['has_digit'] = bool(re.search('\d', txt_nows))
+        d['starts_ws'] = bool(re.match('\s', self.text))
+        d['ends_ws'] = bool(re.search('\s$', self.text))
+        d['all_letters'] = bool(re.match(r'^[A-Za-z\u05D0-\u05EA ]+$', self.text))
+        d['dx'] = self.dx
+        d['dy'] = self.dy
+        d['h_y'] = self.h_y
+        d['dx_raw'] = self.dx_raw
+        d['dy_raw'] = self.dy_raw
+        d['h_y_raw'] = self.h_y_raw
+        d['x'] = x
+        d['y'] = y
+        d['text'] = self.text
+        return d
+
+
 class Cell:
     '''Helper class to represent a cell of text inside of a table'''
     def __init__(self):
@@ -42,3 +65,20 @@ class Cell:
 
     def __str__(self):
         return self.text
+
+def preprocess_cell_data(cells):
+    '''
+    Given a dataframe where each row represents a Cell, prepare it for fitting/prediction
+    '''
+    cells['len'] = cells['len'].astype('float')
+
+    # drop the output variable
+    #y = cells['col']    # used for debugging
+    y = cells['col_idx']
+    X = cells.drop(columns=['col', 'col_idx'])
+
+    # drop input variables which only complicate things
+    to_drop = ['y', 'text']
+    X = X.drop(to_drop,axis=1)
+
+    return X, y
