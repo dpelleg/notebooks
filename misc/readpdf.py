@@ -68,9 +68,15 @@ def visitor_body_delta_vector(text, cm, tm, fontDict, fontSize):
         return
 
     # calculate amount of movement in each dimension and above the Y baseline
-    dx = clip(x - prev_x)
-    dy = clip(y - prev_y)
-    h_y = clip(y - baseline_y)
+    dx = (x - prev_x)
+    dy = (y - prev_y)
+    h_y = (y - baseline_y)
+    tb.dx_raw = dx
+    tb.dy_raw = dy
+    tb.h_y_raw = h_y
+    dx = clip(dx)
+    dy = clip(dy)
+    h_y = clip(h_y)
     tb.dx = dx
     tb.dy = dy
     tb.h_y = h_y

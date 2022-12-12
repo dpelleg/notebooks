@@ -124,14 +124,19 @@ def tb_to_dict(tb):
     y = tb.tm[5]
     d['len'] = len(tb.text)
     d['int'] = bool(re.match('\d+$', txt_nows))
+    d['has_digit'] = bool(re.search('\d', txt_nows))
     d['starts_ws'] = bool(re.match('\s', tb.text))
     d['ends_ws'] = bool(re.search('\s$', tb.text))
     d['all_letters'] = bool(re.match(r'^[A-Za-z\u05D0-\u05EA ]+$', tb.text))
     d['dx'] = tb.dx
     d['dy'] = tb.dy
     d['h_y'] = tb.h_y
+    d['dx_raw'] = tb.dx_raw
+    d['dy_raw'] = tb.dy_raw
+    d['h_y_raw'] = tb.h_y_raw
     d['x'] = x
     d['y'] = y
+    d['text'] = tb.text
     return d
 
 def table_to_df(table_, colnames_file):

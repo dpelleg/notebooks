@@ -11,6 +11,9 @@ class TextBox:
         self.dx = dx
         self.dy = dy
         self.h_y = h_y
+        self.dx_raw = None
+        self.dy_raw = None
+        self.h_y_raw = None
 
     def make_blank_textbox():
         return TextBox('', None, None, None, None)
