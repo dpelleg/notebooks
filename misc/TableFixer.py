@@ -128,8 +128,7 @@ def table_to_helper(table_, colnames_file, output='df'):
     if rej_idx and min(rej_idx) < 10:
         warnings.warn('There are rejected lines near the top of the list')
 
-    with open(colnames_file, 'r') as rf:
-        colnames = list(map(lambda s: s.strip(), rf.readlines()))
+    colnames = read_colnames(colnames_file)
 
     if output == 'df':
         # strip the TextBox wrappers

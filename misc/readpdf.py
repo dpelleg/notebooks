@@ -3,7 +3,7 @@ import re
 import pysnooper
 import pandas as pd
 from TableFixer import table_to_df, table_to_helper
-from pdfhelper import Cell, TextBox
+from pdfhelper import Cell, TextBox, pred_cells_from_table
 import pickle
 import argparse
 
@@ -136,6 +136,7 @@ parser = argparse.ArgumentParser(description="Read an excel-to-PDF file and save
 parser.add_argument("-i", "--input", default='rptPirsum.pdf', help="name of input PDF file")
 parser.add_argument("-o", "--output", default='df.csv', help="name of output CSV file")
 parser.add_argument("-c", "--colnames", default='colnames-haifa.txt', help='text file with column headers, one per line')
+parser.add_argument("-m", "--model", default='pipeline.pkl', help='ML model file to predict columns')
 parser.add_argument("-C", "--Cells", action='store_true', help="instead of a table, output a list of cell features")
 parser.add_argument("-d", "--debug", action='store_true', help="debug mode")
 config = vars(parser.parse_args())
@@ -144,6 +145,10 @@ reader = PdfReader(config['input'])
 
 table = []
 debug = config['debug']
+pred_model = None
+if config['model']:
+    with open(config['model'], 'rb') as file:
+        pred_model = pickle.load(file)
 
 if debug:
     pagelist = [0]
@@ -163,9 +168,9 @@ print()
 if debug:
     with open('table.pickle', 'wb') as f:
         pickle.dump(table, f)
-    for r in table:
-        print(r)
-    if config['Cells']:
+    if pred_model is not None:
+        df, rej = pred_cells_from_table(table, config['colnames'], pred_model)
+    elif config['Cells']:
         df, rej = table_to_helper(table, config['colnames'], output='cell_list')
     else:
         df, rej = table_to_df(table, config['colnames'])
@@ -173,12 +178,18 @@ if debug:
         print("rejects:")
         for r in rej:
             print(r)
-    if config['Cells']:
+    if pred_model is not None:
+        df.to_csv('table.csv', index=False)
+    elif config['Cells']:
         df.to_csv('cells.csv', index=False)
     else:
         print(df.head())
 else:
-    if config['Cells']:
+    if pred_model is not None:
+        print('H1')
+        df, rej = pred_cells_from_table(table, config['colnames'], pred_model)
+        df.to_csv('table.csv', index=False)
+    elif config['Cells']:
         df, rej = table_to_helper(table, config['colnames'], output='cell_list')
         df.to_csv('cells.csv', index=False)
     else:
