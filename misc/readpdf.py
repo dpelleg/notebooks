@@ -12,6 +12,12 @@ import argparse
 '''
 Read the excel-to-PDF file found at
 https://www.haifa.muni.il/development-and-construction/engineering-administration/uprooting-trees/
+
+Typical usage:
+python readpdf.py -m col_classifier.pkl -i rptPirsum.pdf
+
+Then the output is stored at table.csv
+
 '''
 c=0
 prev_x = 0
@@ -136,7 +142,7 @@ parser = argparse.ArgumentParser(description="Read an excel-to-PDF file and save
 parser.add_argument("-i", "--input", default='rptPirsum.pdf', help="name of input PDF file")
 parser.add_argument("-o", "--output", default='df.csv', help="name of output CSV file")
 parser.add_argument("-c", "--colnames", default='colnames-haifa.txt', help='text file with column headers, one per line')
-parser.add_argument("-m", "--model", default='pipeline.pkl', help='ML model file to predict columns')
+parser.add_argument("-m", "--model", help='ML model file to predict columns')
 parser.add_argument("-C", "--Cells", action='store_true', help="instead of a table, output a list of cell features")
 parser.add_argument("-d", "--debug", action='store_true', help="debug mode")
 config = vars(parser.parse_args())
@@ -186,7 +192,6 @@ if debug:
         print(df.head())
 else:
     if pred_model is not None:
-        print('H1')
         df, rej = pred_cells_from_table(table, config['colnames'], pred_model)
         df.to_csv('table.csv', index=False)
     elif config['Cells']:
