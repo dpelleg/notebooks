@@ -1,2 +1,2 @@
 to package the PDF parser for the MEIRIM project:
-zip readpdf.zip readpdf.py TableFixer.py colnames-haifa.txt
+zip readpdf.zip readpdf.py TableFixer.py pdfhelper.py colnames-haifa.txt col_classifier.pkl
