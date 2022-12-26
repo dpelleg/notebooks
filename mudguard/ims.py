@@ -150,6 +150,11 @@ def load_weather_data(n_data_files=10, save_stations=False):
     all = pd.concat(all).drop_duplicates()
     return all
 
+def datetime_to_halfday(dt):
+    date = dt.strftime("%Y%m%d")
+    halfday = 12 * (dt.hour // 12)
+    return "{}:{:02d}".format(date, halfday)
+
 def get_weather_days(reference_date, ndays=3, n_data_files=10, save_stations=False):
     '''Aggregate the most recent weather data, and return the metrics for the last few days.
     '''
@@ -173,13 +178,15 @@ def get_weather_days(reference_date, ndays=3, n_data_files=10, save_stations=Fal
     reference_time = reference_df['DateTime'].max()
 
     # cumulative rain over X days
+    # As above, we pick a representative, but now two representaties for each date - AM and PM
+    # From those we sum the 12-hour cumulative precipitation value
+
     cutoff_date = reference_date + timedelta(days=-ndays)
-    after_cutoff = df_bydate.query("date > @cutoff_date & date <= @reference_date")
-    sum_after_cutoff = after_cutoff.fillna(0).groupby(['StationNumber'])[['R24']].sum().rename(columns={'R24': 'R24_sum'})
-    # BUGBUG: summing the R24 values over the last N days works if the data files were all collected at the same time-of-day
-    #  but the usual case is for a morning collection plus an evening collection. So, when this is run in the morning, the
-    #  R24 value for "today" overlaps with the R24 value from the previous day, potentially causing an over-estimate
-    #  
+    df['halfday'] = df['DateTime'].apply(datetime_to_halfday)
+    df_by_halfdate = df.sort_values('DateTime', ascending=False).drop_duplicates(['StationNumber', 'halfday'])
+
+    after_cutoff = df_by_halfdate.query("date > @cutoff_date & date <= @reference_date")
+    sum_after_cutoff = after_cutoff.fillna(0).groupby(['StationNumber'])[['R12']].sum().rename(columns={'R12': 'R12_sum'})
 
     return reference_df.merge(sum_after_cutoff, on='StationNumber'), reference_time.tz_localize(tz='UTC')
 
@@ -194,5 +201,7 @@ if __name__ == "__main__":
     #foo.to_csv('foo.csv')
     #d1 = datetime.date(2020, 11, 27)
     #d2 = datetime.time(19, 00)
-    r = get_weather_days(reference_date='2022-11-20', ndays=3, n_data_files=20, save_stations=True)  [['StationNumber', 'DateTime', 'R12', 'R01_sum']].sort_values('R01_sum', ascending=False)
+    r, tz = get_weather_days(reference_date='2022-12-26', ndays=3, n_data_files=20, save_stations=True)
+    r = r[['StationNumber', 'DateTime', 'R12', 'R12_sum']]
+    r = r.sort_values('R12_sum', ascending=False)
     print(r)
