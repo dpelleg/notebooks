@@ -12,6 +12,7 @@ import math
 import random
 import sys
 import conf
+from ratelimiter import RateLimiter
 
 # change dir to the script's dir
 os.chdir(sys.path[0])
@@ -22,7 +23,7 @@ datadir = conf.conf['datadir']
 
 # Get the tokens from file to connect to Strava
 with open(token_file) as json_file:
-    strava_tokens = json.load(json_file)# Loop through all activities
+    strava_tokens = json.load(json_file)
 
 # If access_token has expired then
 # use the refresh_token to get the new access_token
@@ -62,11 +63,16 @@ access_token = strava_tokens['access_token']# Get first page of activities from 
 
 outfile = datadir + 'ridelogs/' + time.strftime('%Y%m') + ".json"
 
+# adhere to Strava's rate limits of 100 requests every 15 minutes: https://developers.strava.com/docs/rate-limits/
+rate_limiter = RateLimiter(max_calls=95, period=15*60)
+
 with open(outfile, 'a') as outfile:
+    # Loop through all activities
     for segment in all_ids:
-        # print("Fetching " + segment)
-        r = requests.get(url + segment + '?access_token=' + access_token)
-        r = r.json()
+        #print("Fetching " + segment)
+        with rate_limiter:
+            r = requests.get(url + segment + '?access_token=' + access_token)
+            r = r.json()
         # print(r)
         out = { 'effort_count' : r['effort_count'],
                 'athlete_count' : r['athlete_count'],
