@@ -1,4 +1,5 @@
 StationNumber,StationName,StationLongitude,StationLatitude,StationIsraelX,StationIsraelY,StationHeight
+153,Zefat Har Kenaan,35.507,32.98,247732,765030,936
 174,Herzliyya Airport,34.834,32.1803,184514,676365,32
 179,Bet Dagan,34.8138,32.0073,182539,657187,31
 180,Lod Airport,34.8828,32.0094,189060,657399,41
@@ -54,7 +55,6 @@ StationNumber,StationName,StationLongitude,StationLatitude,StationIsraelX,Statio
 606,Zefat Har Kenaan,35.507,32.98,247732,765030,936
 607,Elon,35.2173,33.0653,220651,774450,300
 608,Rosh Haniqra,35.1079,33.0806,210436,776151,10
-612,Gamla,35.7487,32.9052,270368,756825,405
 613,Ammiad,35.5135,32.915,248360,757823,215
 614,Eshhar,35.3015,32.8844,228532,754391,370
 616,Deir Hanna,35.3741,32.8621,235330,751927,280
