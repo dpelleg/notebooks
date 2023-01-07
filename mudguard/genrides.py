@@ -74,7 +74,7 @@ weather_days.drop(columns=['date'], inplace=True)  # we assume the date is the r
 
 # Add rain measurements to ride data
 d7 = d6.merge(weather_days, how='left', left_on=['closest_ims'], right_on=['StationNumber'])
-d7.rename(columns={'R24_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
+d7.rename(columns={'R12_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
 
 
 # In[ ]:
@@ -177,12 +177,6 @@ skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(traf
 
 
 today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
-
-
-# In[ ]:
-
-
-str(latest_ridelog)
 
 
 # In[ ]:
