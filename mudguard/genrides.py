@@ -14,6 +14,7 @@ import locale
 import re
 import ast
 from datetime import date, timedelta
+import conf
 
 # Analyse segment statistics and generate an HTML table for public consumption
 
@@ -66,7 +67,7 @@ weather_days.drop(columns=['date'], inplace=True)  # we assume the date is the r
 # In[ ]:
 
 
-#weather_days.query('StationNumber == 567')[['R01', 'R12', 'R24', 'R24_sum']]
+#weather_days.query('StationNumber == 511')[['R01', 'R12', 'R24', 'R12_sum']]
 
 
 # In[ ]:
@@ -80,7 +81,7 @@ d7.rename(columns={'R12_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
 # In[ ]:
 
 
-#d7[['segment_id', 'closest_ims', 'rain_3d', 'rain_mm']]
+d7[['segment_id', 'closest_ims', 'rain_3d', 'rain_mm']]
 
 
 # In[ ]:
@@ -176,7 +177,7 @@ skill_color = lambda x: '<div style="background-color: {}">{}</div>'.format(traf
 # In[ ]:
 
 
-today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
+#today[['name', 'rain_mm', 'rain_3d', 'closest_ims', 'StationNumber']].sort_values('rain_3d')
 
 
 # In[ ]:
@@ -250,7 +251,9 @@ with open('epilog.txt', encoding="utf-8") as f:
 html_preamble = '<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">\n<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">\n<title>' + title + '</title>\n</head><body dir=rtl>\n' + preamble + "\n" + update_ts + '<div class="container">\n'
 htmlout = html_preamble + htmlout + "</div>\n" + epilog
 
-fileout = "data/out/rides.html"
+datadir = conf.conf['datadir']
+
+fileout = datadir + "out/rides.html"
 
 with open(fileout, "w", encoding="utf-8") as file:
     file.write(htmlout)
