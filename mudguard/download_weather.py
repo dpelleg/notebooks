@@ -5,13 +5,15 @@ from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from datetime import datetime
 import gzip
+import conf
 
 # download weather files from the Israeli Meteorolgical Service
 
 # Default URL: https://ims.gov.il/sites/default/files/ims_data/xml_files/observ.xml
 #   This should update hourly, about 30 mins after the hour, and have observations for 3 hours back
 
-weather_dir = 'data/weather/'
+datadir = conf.conf['datadir']
+weather_dir = datadir + 'weather/'
 URL = 'https://ims.gov.il/sites/default/files/ims_data/xml_files/observ.xml'
 
 def retry_session(retries, session=None, backoff_factor=0.3):

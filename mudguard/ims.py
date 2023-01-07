@@ -9,13 +9,14 @@ import xml.sax
 import pandas as pd
 import pickle
 import gzip
+import conf
 
 # access functions to IMS API (Israeli climate agency)
 # From: https://ims.gov.il/he/CurrentDataXML
 # Doc: https://ims.gov.il/sites/default/files/2020-08/%D7%94%D7%A1%D7%91%D7%A8_%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D_%D7%A9%D7%A2%D7%AA%D7%99%D7%99%D7%9D_%D7%94%D7%97%D7%9C_01082018.pdf
 #   (a copy of which should reside in this source tree as well)
 
-datadir = 'data/'
+datadir = conf.conf['datadir']
 
 # import data from the IMS
 # Default URL: https://ims.gov.il/sites/default/files/ims_data/xml_files/observ.xml

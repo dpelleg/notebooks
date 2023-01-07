@@ -2,11 +2,11 @@ import datetime
 import pandas as pd
 import os
 from math import radians, cos, sin, asin, sqrt
-
+import conf
 
 # for each segment, find the IMS climate station closest to it
 
-datadir = 'data/'
+datadir = conf.conf['datadir']
 stations_file = 'climate/stations.csv'
 excluded_file = 'climate/excluded_stations.csv'
 

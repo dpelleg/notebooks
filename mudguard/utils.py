@@ -7,8 +7,9 @@ import datetime
 from stations import closest_station
 import time
 import numpy as np
+import conf
 
-datadir = 'data/'
+datadir = conf.conf['datadir']
 segfile = 'segments/segments.csv'
 weather_file = 'climate/weather_days.csv'
 

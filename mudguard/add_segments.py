@@ -11,6 +11,7 @@ import csv
 import os.path
 import sys
 from datetime import datetime
+import conf
 
 if len(sys.argv) < 4:
     print("Usage: add_segments segment_id region_url region_name")
@@ -50,7 +51,8 @@ if strava_tokens['expires_at'] < time.time():# Make Strava auth API call with cu
 segments_to_add = ['3808938', '1248017', '4267589', '18952377', '2481821', '7774409', '8574425', '17421855', '4202076', '1717839', '17443790']
 
 # load the current list of segments, if it exists
-segfile = 'data/segments/segments.csv'
+datadir = conf.conf['datadir']
+segfile = datadir + 'segments/segments.csv'
 
 
 if(os.path.isfile(segfile)):

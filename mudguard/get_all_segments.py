@@ -11,13 +11,14 @@ import pandas as pd
 import math
 import random
 import sys
+import conf
 
 # change dir to the script's dir
 os.chdir(sys.path[0])
 
 token_file = 'tokens/strava_tokens.json'
 secret_file = 'tokens/strava_secret.json'
-datadir = 'data/'
+datadir = conf.conf['datadir']
 
 # Get the tokens from file to connect to Strava
 with open(token_file) as json_file:

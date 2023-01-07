@@ -5,11 +5,12 @@ import time
 import datetime
 import glob as mod_glob
 import json
+import conf
 
 # Analyse segment statistics
 
 # Read meta-data for all segments
-datadir = 'data/'
+datadir = conf.conf['datadir']
 segfile = 'segments/segments.csv'
 
 md = pd.read_csv(datadir + segfile)
