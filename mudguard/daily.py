@@ -7,7 +7,11 @@ import conf
 os.chdir(sys.path[0])
 
 subprocess.run(["python3", "./download_weather.py"])
-subprocess.run(["python3", "./get_all_segments.py"])
+
+nosegs = len(sys.argv) > 1 and sys.argv[1] == 'no_segments'
+if !nosegs:
+    subprocess.run(["python3", "./get_all_segments.py"])
+
 subprocess.run(["python3", "./genrides.py"], check=True)
 srcfile = "{}out/rides.html".format(conf.conf['datadir'])
 subproces.run("mv {} ../../mysite/static/rides.html".format(srcfile))
