@@ -9,7 +9,7 @@ os.chdir(sys.path[0])
 subprocess.run(["python3", "./download_weather.py"])
 
 nosegs = len(sys.argv) > 1 and sys.argv[1] == 'no_segments'
-if !nosegs:
+if not nosegs:
     subprocess.run(["python3", "./get_all_segments.py"])
 
 subprocess.run(["python3", "./genrides.py"], check=True)
