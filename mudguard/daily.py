@@ -14,4 +14,4 @@ if not nosegs:
 
 subprocess.run(["python3", "./genrides.py"], check=True)
 srcfile = "{}out/rides.html".format(conf.conf['datadir'])
-subprocess.run(["mv", srcfile, ""../../mysite/static/rides.html"])
+subprocess.run(["mv", srcfile, "../../mysite/static/rides.html"])
