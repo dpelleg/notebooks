@@ -15,6 +15,7 @@ import re
 import ast
 from datetime import date, timedelta
 import conf
+import json
 
 # Analyse segment statistics and generate an HTML table for public consumption
 
@@ -27,7 +28,7 @@ md = utils.get_segment_metadata()
 # ignore inactive segments
 md = md[md['active_html']]
 
-rl_ = utils.get_ridelogs()
+rl_ = utils.get_ridelogs(upper_nrides=10)
 
 # save a table aside
 md_meta = md[['id', 'name', 'distance', 'region_name', 'region_url', 'closest_ims']].copy()
@@ -81,7 +82,7 @@ d7.rename(columns={'R12_sum':'rain_3d', 'R12':'rain_mm'}, inplace=True)
 # In[ ]:
 
 
-d7[['segment_id', 'closest_ims', 'rain_3d', 'rain_mm']]
+#d7[['segment_id', 'closest_ims', 'rain_3d', 'rain_mm']]
 
 
 # In[ ]:
@@ -257,4 +258,22 @@ fileout = datadir + "out/rides.html"
 
 with open(fileout, "w", encoding="utf-8") as file:
     file.write(htmlout)
+
+
+# In[ ]:
+
+
+# prepare the data in a JSON file
+jout = today.sort_values(['region_name', 'name']).copy()
+jout = jout[['date', 'segment_id', 'nrides', 'rain_mm', 'rain_3d']]
+jout.rename(columns={'rain_mm':'rain_12hr'}, inplace=True)
+jout = jout.set_index('segment_id')
+jout['date'] = jout['date'].astype(str)
+jout['nrides'] = jout['nrides'].apply(lambda s: '{:.2f}'.format(s))
+jout_dict = jout.to_dict()
+#jout_str = jout[:10].to_json(orient='records', date_format='iso', double_precision=2, date_unit='s', lines=False)
+out = {'version':"1.0", 'date_generated':pd.Timestamp(latest_ridelog).strftime('%Y%m%d'), 'data':jout_dict} 
+
+with open(datadir+'out/rides.json', 'wt') as file:
+    file.write(json.dumps(out))
 

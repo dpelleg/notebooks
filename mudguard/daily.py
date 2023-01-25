@@ -13,5 +13,6 @@ if not nosegs:
     subprocess.run(["python3", "./get_all_segments.py"])
 
 subprocess.run(["python3", "./genrides.py"], check=True)
-srcfile = "{}out/rides.html".format(conf.conf['datadir'])
-subprocess.run(["mv", srcfile, "../../mysite/static/rides.html"])
+for suffix in ['html', 'json']:
+    srcfile = "{}out/rides.{}".format(conf.conf['datadir'], suffix)
+    subprocess.run(["mv", srcfile, "../../mysite/static/"])
