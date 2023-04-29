@@ -8,3 +8,4 @@ mudguard/self/access_token.pickle
 mudguard/self/client.secret
 mudguard/self/activities.csv
 mudguard/conf.json
+secrets/
