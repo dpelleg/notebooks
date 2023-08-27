@@ -26,10 +26,6 @@ def compress_and_delete_file(input_path):
 
     os.remove(input_path)
 
-# Replace 'path/to/your/file.txt' with the actual file path
-file_path = 'path/to/your/file.txt'
-compress_and_delete_file(file_path)
-
 # Rate limiting decorators
 # Limit to 100 calls per hour (3600 seconds)
 @sleep_and_retry
@@ -68,7 +64,7 @@ def sanitize_input(input_string):
 # Function to check the validity of the uploaded CSV file
 def is_valid_csv(file):
     try:
-        with open(file, 'r') as f:
+        with open(file, 'r', encoding='UTF-8') as f:
             lines = f.readlines()
             if len(lines) >= 12:
                 header_line = lines[11].strip()
@@ -76,7 +72,8 @@ def is_valid_csv(file):
                     return True
             return False
     except Exception as e:
-        return False
+        if app.debug:
+            app.logger.warning(e)
     return False
 
 def str_month_and_year(date_str):
@@ -151,7 +148,9 @@ def upload_form():
                 compress_and_delete_file(file_path)
 
                 return render_template('result.html', result=result, kwh_rate=kwh_rate, kwh_rate_date=kwh_rate_date)
-            except:
+            except Exception as e:
+                if app.debug:
+                    app.logger.warning(e)
                 return render_template('noresult.html')
 
     return render_template('upload_form.html')
