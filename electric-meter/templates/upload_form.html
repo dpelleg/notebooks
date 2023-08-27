@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <title>מחשבון ספק חשמל</title>
+    <link rel="stylesheet" href="static/styles.css">
+
+</head>
+<body>
+    <h1>
+      חישוב עלויות הצריכה לכל ספק, על פי קובץ צריכת החשמל שלי
+    </h1>
+    <h2>איך משיגים את קובץ הצריכה שלי?</h2>
+      <ol>
+        <li>
+          קוראים על
+          <a href=https://he.wikipedia.org/wiki/%D7%94%D7%A8%D7%A4%D7%95%D7%A8%D7%9E%D7%94_%D7%91%D7%97%D7%91%D7%A8%D7%AA_%D7%94%D7%97%D7%A9%D7%9E%D7%9C>הרפורמה</a>
+          <a href=https://www.kamaze.co.il/reviews/14780/electrical-power/electricity>במשק החשמל</a>
+          ומזמינים מ
+          <a href=https://www.iec-info.co.il/iec-smart-meter/>מחברת החשמל</a>
+          מונה חכם
+        </li>
+        <li>
+        לאחר התקנת המונה החכם, יש להמתין כשבועיים כדי שיאספו מספיק נתונים לבצע חישוב מהימן
+        </li>
+        <li>
+          עכשיו ניתן לבקש מחברת החשמל את קובץ הצריכה שלכם. צריך להכנס
+          ממחשב (כרגע לא עובד מהנייד)
+          <a href=https://www.iec.co.il/login?returnPath=%2Fconsumption-info-menu/>לאיזור האישי באתר חברת החשמל</a>
+          ולנווט בתפריטים לפי הדוגמה:
+        </li>
+        <li>
+            <div class="centered-image">
+              <div class="image-container">
+              <a href="static/screenshots/step1.png" target="_blank">
+                <img src="static/screenshots/step1.png" alt="Step 1">
+              </a>
+            </div>
+            </div>
+        </li>
+        <li>
+            <div class="centered-image">
+              <div class="image-container">
+              <a href="static/screenshots/step2.png" target="_blank">
+                <img src="static/screenshots/step2.png" alt="Step 2">
+              </a>
+            </div>
+            </div>
+        </li>
+        <li>
+            <div class="centered-image">
+              <div class="image-container">
+              <a href="static/screenshots/step3.png" target="_blank">
+                <img src="static/screenshots/step3.png" alt="Step 3">
+              </a>
+            </div>
+            </div>
+        </li>
+        <li>
+            <div class="centered-image">
+              <div class="image-container">
+              <a href="static/screenshots/step4.png" target="_blank">
+                <img src="static/screenshots/step4.png" alt="Step 4">
+              </a>
+            </div>
+            </div>
+        </li>
+        <li>
+            <div class="centered-image">
+              <div class="image-container">
+              <a href="static/screenshots/step5.png" target="_blank">
+                <img src="static/screenshots/step5.png" alt="Step 5">
+              </a>
+            </div>
+            </div>
+        </li>
+        <li>
+          מחכים שהקובץ יגיע במייל ושומרים אותו אצלכם
+        </li>
+      </ol>
+
+    <h2>
+    <form action="/" method="post" enctype="multipart/form-data">
+        <label for="csv_file">
+          הכל מוכן! הנה קובץ הצריכה שלי כפי שהגיע מחברת החשמל:
+        </label>
+        <input type="file" name="csv_file" id="csv_file" accept=".csv">
+
+        <input type="submit" value="שלח">
+    </form>
+    </h2>
+  <h2>&nbsp</h2>
+
+  <div class="footer">
+      <a href="https://twitter.com/danpelleg" target="_blank">דן פלג בטוויטר</a>
+      <a href="mailto:electricity@pelleg.org">מייל לדן פלג</a>
+  </div>
+
+</body>
+</html>

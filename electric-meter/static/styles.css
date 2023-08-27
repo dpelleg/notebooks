@@ -1,0 +1,48 @@
+.cost-table {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.cost-table tr:nth-child(odd) {
+    background-color: Lightgray;
+}
+
+.centered-image {
+ display: flex;
+ justify-content: center;
+ align-items: center;
+}
+
+.image-container {
+ border: 3px solid black;
+ border-radius: 10px;
+ width: 400px;
+ height: 200px;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ overflow: hidden;
+}
+
+.image-container img {
+ max-width: 100%;
+ max-height: 100%;
+ cursor: pointer;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.footer a {
+  text-decoration: underline;
+  margin: 0 10px;
+}
+
+.footer a:hover {
+  color: blue; /* Change link color on hover if desired */
+}

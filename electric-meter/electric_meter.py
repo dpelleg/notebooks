@@ -10,10 +10,10 @@ with open('data/conf.json', 'r') as json_file:
     conf = json.load(json_file)
 
 kwh_rate = conf['kwh_rate']
-kw_rate_date = conf['kwh_rate_date']
+kwh_rate_date = conf['kwh_rate_date']
 
 def read_data(fname):
-    meter = pd.read_csv('data/meter.csv', skiprows=11)
+    meter = pd.read_csv(fname, skiprows=11)
     meter.columns=['time', 'consumption']
     meter['time'] = pd.to_datetime(meter['time'], format='%d/%m/%Y %H:%M')
     meter.set_index('time', inplace=True)
@@ -147,7 +147,7 @@ def compute_costs(df):
             else:
                 costs = pd.concat([costs, cost], axis=1)
 
-    return costs
+    return costs, kwh_rate, kwh_rate_date
 
 def style_table(df):
     df.rename(columns = schedule_xlat, inplace=True)

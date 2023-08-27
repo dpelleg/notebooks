@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+  <link rel="stylesheet" href="static/styles.css">
+  <title>עלויות צריכת חשמל לפי ספק</title>
+</head>
+<body>
+    <h1>עלויות הצריכה לפי תוכנית</h1>
+    <h3>
+      <ul>
+        <li>
+          העלות היא למרכיב הצריכה בלבד (לא כולל עלויות קבועות)
+        </li>
+        <li>
+          העלות היא בשקלים וללא מע״מ
+        </li>
+        <li>
+          העלות מחושבת לפי תעריף של
+          {{ kwh_rate }}
+          אגורות לקווט״ש,
+          שהינו בתוקף החל מ:
+          {{ kwh_rate_date }}
+        </li>
+        <li>
+          אם יש ספקים שפירסמו תעריפים אבל לא מופיעים כאן, אפשר להודיע לנו לפי פרטי הקשר למטה
+         </li>
+
+      </ul>
+
+    </h3>
+    <div>
+        {{ result|safe }}
+    </div>
+
+
+    <div class="footer">
+        <a href="https://twitter.com/danpelleg" target="_blank">דן פלג בטוויטר</a>
+        <a href="mailto:electricity@pelleg.org">מייל לדן פלג</a>
+    </div>
+
+
+
+</body>
+</html>
