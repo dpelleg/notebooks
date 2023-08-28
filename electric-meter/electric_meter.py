@@ -23,7 +23,7 @@ def read_data(fname):
     meter['wday'] = meter.index.weekday
     meter['hour'] = meter.index.hour
     meter['wday_name'] = meter.index.day_name()
-    meter['timeperiod'] = meter.index.strftime('%B %Y')
+    meter['timeperiod'] = meter.index.strftime('%Y%m01')   # keep it in YYYYMMDD format, we'll later sort it and format it nicely
     return meter
 
 def get_timeperiods_with_count_above_threshold(df, threshold=10):
@@ -147,6 +147,10 @@ def compute_costs(df):
             else:
                 costs = pd.concat([costs, cost], axis=1)
 
+    # make sure it's sorted
+    costs.sort_index(ascending=True, inplace=True)
+    # transform YYYYMMDD format to "month year"
+    costs.index = pd.to_datetime(costs.index).to_series().dt.strftime('%B %Y')
     return costs, kwh_rate, kwh_rate_date
 
 def style_table(df):
@@ -154,6 +158,7 @@ def style_table(df):
     df.rename_axis('תקופה', inplace=True)
 
     styled_df = df.style.format('{:.2f}').highlight_min(color='#b1d77a', axis=1).highlight_max(color='#f287d0', axis=1)
+    styled_df.set_table_attributes('class="cost-table"')
 
     # Convert the Styler to HTML
     html_table = styled_df.to_html()

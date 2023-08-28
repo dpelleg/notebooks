@@ -139,10 +139,9 @@ def upload_form():
                 meter = read_data(file_path)
                 costs, kwh_rate, kwh_rate_date = compute_costs(meter)
                 result = style_table(costs)
-                result = result.set_table_attributes('class="cost-table"')
                 result = result.to_html()
                 # format into readable units
-                kwh_rate *= 100
+                kwh_rate *= 100     # Agorot to Shekel
                 kwh_rate_date = str_month_and_year(kwh_rate_date)
 
                 compress_and_delete_file(file_path)
