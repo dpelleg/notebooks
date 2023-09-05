@@ -137,16 +137,22 @@ def upload_form():
             # Call function to compute costs
             try:
                 meter = read_data(file_path)
-                costs, kwh_rate, kwh_rate_date = compute_costs(meter)
+                costs, conf = compute_costs(meter)
                 result = style_table(costs)
                 result = result.to_html()
                 # format into readable units
-                kwh_rate *= 100     # Agorot to Shekel
-                kwh_rate_date = str_month_and_year(kwh_rate_date)
+                kwh_rate = 100*conf['kwh_rate']     # Agorot to Shekel
+                kwh_rate_date = str_month_and_year(conf['kwh_rate_date'])
+                taoz_rate_date = str_month_and_year(conf['taoz_rate_date'])
 
                 compress_and_delete_file(file_path)
 
-                return render_template('result.html', result=result, kwh_rate=kwh_rate, kwh_rate_date=kwh_rate_date)
+                return render_template('result.html',
+                    result=result,
+                    kwh_rate=kwh_rate,
+                    kwh_rate_date=kwh_rate_date,
+                    taoz_rate_date=taoz_rate_date,
+                    )
             except Exception as e:
                 if app.debug:
                     app.logger.warning(e)

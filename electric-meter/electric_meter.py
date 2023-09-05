@@ -85,7 +85,12 @@ def electra_hitec(df):
 def no_discount(df):
     return pd.Series(0, index=df.index)
 
+# placeholers
+def taoz1(df):
+    return no_discount(df)
 
+def taoz2(df):
+    return no_discount(df)
 #+++-----------------------------------
 
 
@@ -99,6 +104,8 @@ schedule_xlat = {
     'amisragas_unlimited' : 'אמישראגז',
     'electra_power' : 'אלקטרה פאואר',
     'electra_hitec' : 'אלקטרה הייטק',
+    'taoz1' : 'תעו״ז חד-חודשי',
+    'taoz2' : 'תעו״ז דו-חודשי',
 }
 
 # a list of different cost schedules to consider
@@ -111,6 +118,8 @@ schedules = [
     amisragas_unlimited,
     electra_power,
     electra_hitec,
+    taoz1,
+    taoz2
 ]
 
 #----------------------------------------
@@ -151,14 +160,19 @@ def compute_costs(df):
     costs.sort_index(ascending=True, inplace=True)
     # transform YYYYMMDD format to "month year"
     costs.index = pd.to_datetime(costs.index).to_series().dt.strftime('%B %Y')
-    return costs, kwh_rate, kwh_rate_date
+    return costs, conf
 
 def style_table(df):
+
     df.rename(columns = schedule_xlat, inplace=True)
     df.rename_axis('תקופה', inplace=True)
 
     styled_df = df.style.format('{:.2f}').highlight_min(color='#b1d77a', axis=1).highlight_max(color='#f287d0', axis=1)
     styled_df.set_table_attributes('class="cost-table"')
+
+    classes = pd.DataFrame("optional", index=df.index, columns=[schedule_xlat[t] for t in ['taoz1', 'taoz2']])
+
+    styled_df.set_td_classes(classes)
 
     # Convert the Styler to HTML
     html_table = styled_df.to_html()

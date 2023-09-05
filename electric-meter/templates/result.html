@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="static/styles.css">
   <title>עלויות צריכת חשמל לפי ספק</title>
 </head>
@@ -9,7 +11,16 @@
     <h3>
       <ul>
         <li>
-          העלות היא למרכיב הצריכה בלבד (לא כולל עלויות קבועות)
+          העלות הראשונית המוצגת היא למרכיב הצריכה בלבד (לא כולל עלויות קבועות)
+        </li>
+        <li>
+          ניתן גם להזין את התשלום הקבוע שלך (חלוקה+אספקה)
+          כפי שמופיע בחשבון שלך מאחד החודשים האחרונים.
+          דוגמה:
+        <a href='static/fixed-charge.png'><img src='static/fixed-charge.png' width='300'></a>
+        </li>
+        <li>
+        בהזנת תשלום קבוע, תחושב גם עלות לפי תעו״ז.
         </li>
         <li>
           העלות היא בשקלים וללא מע״מ
@@ -22,10 +33,20 @@
           {{ kwh_rate_date }}
         </li>
         <li>
+
+          עלות תעו״ז מחושבת לפי
+<a href='https://www.iec.co.il/content/tariffs/contentpages/taozb-namuch' target='_blank'>הפרסום באתר חברת החשמל</a>
+          , ועודכן אצלנו בתאריך
+          {{ taoz_rate_date }}
+        </li>
+        <li>
           אם יש ספקים שפירסמו תעריפים אבל לא מופיעים כאן, אפשר להודיע לנו לפי פרטי הקשר למטה
          </li>
-
       </ul>
+
+      הזן עלות קבועה ב-₪:
+      <input type="text" id="inputBox">
+      <button id="calculateButton">חשב</button>
 
     </h3>
     <div>
@@ -38,7 +59,7 @@
         <a href="mailto:electricity@pelleg.org">מייל לדן פלג</a>
     </div>
 
-
+<script type="text/javascript" src="static/result.js"></script>
 
 </body>
 </html>
