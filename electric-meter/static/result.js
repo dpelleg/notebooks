@@ -47,10 +47,10 @@ function decorateMinMaxCells(table) {
       var cells = row.querySelectorAll('td');
 
       // first iteration: find the min/max values
-      // Iterate through each cell in the row
+      // Iterate through each cell in the row, but only consider the visible ones
       cells.forEach(function (cell) {
         var cellValue = parseFloat(cell.textContent);
-        if (!isNaN(cellValue)) {
+        if (!(cell.style.visibility === "hidden") && !isNaN(cellValue)) {
           if (cellValue < minValue) {
             minValue = cellValue;
           }
@@ -63,7 +63,7 @@ function decorateMinMaxCells(table) {
       // second iteration: add any min/max cells to the list
       cells.forEach(function (cell) {
         var cellValue = parseFloat(cell.textContent);
-        if (!isNaN(cellValue)) {
+        if (!(cell.style.visibility === "hidden") && !isNaN(cellValue)) {
           if (cellValue === minValue) {
             minCells.push(cell);
           }
@@ -96,6 +96,8 @@ tableCells.forEach((cell) => {
       cell.style.visibility = "hidden";
     };
 });
+
+decorateMinMaxCells(document.querySelector('.' + tableClassName));
 
 function updateTable() {
     const inputValue = parseFloat(inputBox.value);

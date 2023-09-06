@@ -5,12 +5,32 @@ import pandas as pd
 import numpy as np
 import locale
 import json
+from functools import lru_cache
+from pyluach import dates
+from datetime import timedelta
+import unittest
 
 with open('data/conf.json', 'r') as json_file:
     conf = json.load(json_file)
 
 kwh_rate = conf['kwh_rate']
 kwh_rate_date = conf['kwh_rate_date']
+
+# TAOZ definitions - https://www.iec.co.il/content/tariffs/contentpages/taozb-namuch
+month_to_season = {
+    1: "winter",
+    2: "winter",
+    3: "transition",
+    4: "transition",
+    5: "transition",
+    6: "summer",
+    7: "summer",
+    8: "summer",
+    9: "summer",
+    10: "transition",
+    11: "transition",
+    12: "winter"
+}
 
 def read_data(fname):
     meter = pd.read_csv(fname, skiprows=11)
@@ -20,10 +40,13 @@ def read_data(fname):
     meter = meter.resample('1H').sum()
     locale.setlocale(locale.LC_ALL, 'he_IL')
     meter['date'] = meter.index.date
+    meter['month'] = meter.index.month
     meter['wday'] = meter.index.weekday
     meter['hour'] = meter.index.hour
     meter['wday_name'] = meter.index.day_name()
     meter['timeperiod'] = meter.index.strftime('%Y%m01')   # keep it in YYYYMMDD format, we'll later sort it and format it nicely
+    meter['season'] = meter['month'].map(month_to_season)
+    set_hhi_weekends(meter)
     return meter
 
 def get_timeperiods_with_count_above_threshold(df, threshold=10):
@@ -33,6 +56,93 @@ def get_timeperiods_with_count_above_threshold(df, threshold=10):
     timeperiods_above_threshold = result[result > threshold].index.tolist()
     return timeperiods_above_threshold
 
+#--------------------------------------
+# Utility functions for holidays and weekends
+#--------------------------------------
+@lru_cache
+def hhi_holiday(date):
+    """Return holiday of given date, constrained to Hevrat Hashmal holidays for TAOZ
+    Source: https://www.iec.co.il/content/tariffs/contentpages/taozb-namuch
+
+    Parameters
+    ----------
+    date : ``HebrewDate``, ``GregorianDate``, or ``JulianDay``
+      Any date that implements a ``to_heb()`` method which returns a
+      ``HebrewDate`` can be used.
+
+    Returns
+    -------
+    str or ``None``
+      The name of the holiday or ``None`` if the given date is not
+      a Jewish holiday.
+    """
+    date = date.to_heb()
+    year = date.year
+    month = date.month
+    day = date.day
+    if month == 7:
+        if day in range(1, 3):
+            return 'Rosh Hashana'
+        elif day == 10:
+            return 'Yom Kippur'
+        elif day == 15:
+            return 'Succos'
+        elif day == 22:
+            return 'Simhat Torah'
+    elif month == 1 and day in [15, 21]:
+        return 'Pesach'
+    elif month == 3 and day == 6:
+        return 'Shavuos'
+
+@lru_cache
+def yom_atzmaut_heb_date(heb_year):
+    target_date = dates.HebrewDate(heb_year, 2, 5)
+    weekday = int(target_date.to_pydate().strftime('%w'))  # 0=Sunday
+    # offsets - from https://he.wikipedia.org/wiki/%D7%99%D7%95%D7%9D_%D7%94%D7%A2%D7%A6%D7%9E%D7%90%D7%95%D7%AA
+    if weekday == 5:     #Friday
+        target_date -= 1
+    elif weekday == 6:   # Saturday
+        target_date -= 2
+    elif weekday == 1:   # Monday
+        target_date += 1
+    return target_date.to_pydate()
+
+def is_yom_atzmaut(year, month, day):
+    heb_date = dates.GregorianDate(year, month, day).to_heb()
+    heb_year = heb_date.year
+    yom_atzmaut_date = yom_atzmaut_heb_date(heb_year)
+    return yom_atzmaut_date == heb_date.to_pydate()
+
+def get_holidays(df):
+    holiday_dates = []
+    for d in set(df.index.date):
+        if is_yom_atzmaut(d.year, d.month, d.day):
+            holiday_dates.append(d)
+        else:
+            hd=dates.GregorianDate(d.year, d.month, d.day)
+            holiday = hhi_holiday(hd)
+            if holiday is not None:
+                holiday_dates.append(hd.to_pydate())
+    return holiday_dates
+
+def set_hhi_weekends(df):
+    # Get the list of holidays
+    holidays = get_holidays(df)
+
+    # Add the dates which precede each holiday by one day
+    expanded_holidays = [date - pd.Timedelta(days=1) for date in holidays] + holidays
+
+    # Add Fridays and Saturdays
+    for d in set(df.index.date):
+        if d.weekday() in [4,5]:
+            expanded_holidays.append(d)
+
+    # Convert the datetime index to a list of datetime.date objects
+    date_list = [date.date() for date in df.index]
+
+    df['hhi_weekend'] = [d in expanded_holidays for d in date_list]
+
+    return df
 #--------------------------------------
 # implementation of time-based billing
 #--------------------------------------
@@ -46,9 +156,9 @@ def filter_hour_or(df, start_hour, end_hour):
 def filter_days(df, days):
     return pd.Series(df.index.day_name().isin(days), index=df.index)
 
-def apply_filter(df, val, filter_func):
+def apply_filter(df, val, filter_func, default_val=0):
     pred = filter_func(df)
-    ret = pd.Series(0, index=pred.index)
+    ret = pd.Series(default_val, index=pred.index)
     ret[pred] = val
     return ret
 
@@ -87,10 +197,12 @@ def no_discount(df):
 
 # placeholers
 def taoz1(df):
-    return no_discount(df)
+    C = taoz_rate_all_seasons(df, conf['taoz'])
+    return C, conf['taoz1_fixed_cost']    # haluka + aspaka
 
 def taoz2(df):
-    return no_discount(df)
+    C = taoz_rate_all_seasons(df, conf['taoz'])
+    return C, conf['taoz2_fixed_cost']    # haluka + aspaka
 #+++-----------------------------------
 
 
@@ -122,17 +234,57 @@ schedules = [
     taoz2
 ]
 
+## TAOZ
 #----------------------------------------
 
+def taoz_rate_one_season(df, low_price, high_price, weekday_high_hours, weekend_high_hours):
+
+    def rate_helper(df, selector, start_hour, end_hour):
+        F = apply_filter(df[selector],
+                         val=high_price,
+                         filter_func=lambda x: filter_hour_and(x, start_hour, end_hour),
+                         default_val=low_price)
+        ret.loc[F.index] = F
+
+    ret = pd.Series(np.nan, index=df.index)
+
+    hhi_weekend = df['hhi_weekend']
+    # weekdays
+    rate_helper(df, ~hhi_weekend, weekday_high_hours['start'], weekday_high_hours['end'])
+    # weekends
+    rate_helper(df,  hhi_weekend, weekend_high_hours['start'], weekend_high_hours['end'])
+
+    return ret
+
+def taoz_rate_all_seasons(df, taoz_schedule):
+    ret = pd.Series(np.nan, index=df.index)
+    for season in df['season'].unique():
+        season_conf=taoz_schedule[season]
+        low_price = season_conf['low_price']
+        high_price = season_conf['high_price']
+        weekday_high_hours = season_conf['weekday_high_hours']
+        weekend_high_hours = season_conf['weekend_high_hours']
+        R = taoz_rate_one_season(df[df['season']==season], low_price, high_price, weekday_high_hours, weekend_high_hours)
+        ret.loc[R.index] = R
+
+    return ret
+#------------------------------------------
 
 def cost_by_schedule(df, schedule):
-    discount_pct=schedule(df)     # for each reading, get the discount percent (0 if no discount)
-    multiplier = 1. - discount_pct/100.
+    if schedule.__name__.startswith('taoz'):    # these schedules return the actual rate per reading
+        cost_items, fixed_cost_per_timeperiod = schedule(df)
+        cost_items = cost_items * df['consumption']
+    else:
+        discount_pct = schedule(df)     # these schedules return the discount percent per reading (0 if no discount)
+        multiplier = 1. - discount_pct/100.
+        cost_items = df['consumption'] * kwh_rate * multiplier
+        fixed_cost_per_timeperiod = 0
     cost = pd.DataFrame(data={
-        'cost' : df['consumption'] * kwh_rate * multiplier,
+        'cost' : cost_items,
         'timeperiod' : df['timeperiod']},
         index=df.index)
-    return cost
+
+    return cost, fixed_cost_per_timeperiod
 
 def cost_by_month(df):
     return df.groupby('timeperiod').sum()
@@ -149,7 +301,8 @@ def compute_costs(df):
     costs = None
     if len(meter) > 0:
         for schedule in schedules:
-            cost = cost_by_month(cost_by_schedule(meter, schedule))
+            cost_items, cost_fixed = cost_by_schedule(meter, schedule)
+            cost = cost_by_month(cost_items) + cost_fixed
             cost.rename(columns={cost.columns[0]:schedule.__name__}, inplace=True)
             if costs is None:
                 costs = cost
@@ -179,3 +332,85 @@ def style_table(df):
 
     # to use within Jupyter notebook: display(style_table(costs))
     return styled_df
+
+
+#------------------------------------------
+#   Tests
+#------------------------------------------
+
+class Test_meter(unittest.TestCase):
+    def setUp(self):
+        test_dates = [
+            '2023-10-01 21:00',
+            '2023-10-01 22:00',
+            '2023-03-04 21:00',
+            '2023-03-04 22:00',
+            '2023-06-07 16:00',
+            '2023-06-07 17:00',
+            '2023-06-09 16:00',
+            '2023-06-09 17:00',
+            '2023-01-03 21:00',
+            '2023-01-03 22:00',
+            '2023-01-07 16:00',
+            '2023-01-07 17:00',
+        ]
+
+        mymeter = pd.DataFrame(data={'time':pd.to_datetime(test_dates)})
+
+        mymeter.set_index('time', inplace=True)
+
+        mymeter['date'] = mymeter.index.date
+        mymeter['wday'] = mymeter.index.weekday
+        mymeter['hour'] = mymeter.index.hour
+        mymeter['month'] = mymeter.index.month
+        mymeter['wday_name'] = mymeter.index.day_name()
+        F=filter_days(mymeter, ['Friday', 'Saturday'])
+        mymeter['hhi_weekend'] = F
+        mymeter['season'] = mymeter['month'].map(month_to_season)
+        self.mymeter = mymeter
+
+    def test_taoz(self):
+        taoz_schedule = {
+        'summer' : {'low_price':'lowsummer', 'high_price':'highsummer', 'weekday_high_hours':{'start':17, 'end':23}, 'weekend_high_hours':{'start':-1, 'end':-1}},
+        'winter' : {'low_price':'lowwinter', 'high_price':'highwinter', 'weekday_high_hours':{'start':17, 'end':22}, 'weekend_high_hours':{'start':17, 'end':22}},
+        'transition' : {'low_price':'lowtrans', 'high_price':'hightrans', 'weekday_high_hours':{'start':17, 'end':22}, 'weekend_high_hours':{'start':-1, 'end':-1}},
+        }
+
+        mymeter = self.mymeter
+
+        for season in mymeter['season'].unique():
+            season_conf=taoz_schedule[season]
+            low_price = season_conf['low_price']
+            high_price = season_conf['high_price']
+            weekday_high_hours = season_conf['weekday_high_hours']
+            weekend_high_hours = season_conf['weekend_high_hours']
+            R = taoz_rate_one_season(mymeter[mymeter['season']==season], low_price, high_price, weekday_high_hours, weekend_high_hours)
+            mymeter.loc[R.index, 'price'] = R
+
+        expected = ['hightrans',
+             'lowtrans',
+             'lowtrans',
+             'lowtrans',
+             'lowsummer',
+             'highsummer',
+             'lowsummer',
+             'lowsummer',
+             'highwinter',
+             'lowwinter',
+             'lowwinter',
+             'highwinter']
+
+        computed = mymeter['price'].to_list()
+
+        self.assertEqual(len(computed), len(expected))
+        for i in range(len(expected)):
+            self.assertEqual(computed[i], expected[i])
+
+if __name__ == '__main__':
+    if True:
+        unittest.main()
+    else:
+        meter = read_data('data/meter.csv')
+        costs, conf = compute_costs(meter)
+        print(costs)
+        print(conf)
