@@ -1,4 +1,4 @@
 secrets.json
 uploads/
-data/meter*csv
+data/*csv
 uploads/uploads.json
