@@ -93,7 +93,8 @@ tableCells.forEach((cell) => {
     cell.setAttribute("data-value", cellValue);
     cell.innerText = cellValue.toFixed(2);
     if (cell.classList.contains("optional")) {
-      cell.style.visibility = "hidden";
+      //cell.style.visibility = "hidden";
+      cell.innerText = "הזן עלות קבועה"
     };
 });
 
@@ -112,9 +113,8 @@ function updateTable() {
         const newValue = (cellValue + inputValue).toFixed(2);
         if (cell.classList.contains("optional")) {
           cell.style.visibility = "visible";
-        } else {
-          cell.innerText = newValue;
-        };
+        }
+        cell.innerText = newValue;
     });
 
     decorateMinMaxCells(table)
