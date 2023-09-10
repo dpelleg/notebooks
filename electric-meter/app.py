@@ -64,13 +64,7 @@ def sanitize_input(input_string):
 # Function to check the validity of the uploaded CSV file
 def is_valid_csv(file):
     try:
-        with open(file, 'r', encoding='UTF-8') as f:
-            lines = f.readlines()
-            if len(lines) >= 12:
-                header_line = lines[11].strip()
-                if header_line == '"Interval starting","Consumption, kWh"':
-                    return True
-            return False
+        return file_contains_header(file)
     except Exception as e:
         if app.debug:
             app.logger.warning(e)

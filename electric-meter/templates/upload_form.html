@@ -3,13 +3,24 @@
 <head>
     <title>מחשבון ספק חשמל</title>
     <link rel="stylesheet" href="static/styles.css">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <h1>
       חישוב עלויות הצריכה לכל ספק, על פי קובץ צריכת החשמל שלי
     </h1>
-    <h2>איך משיגים את קובץ הצריכה שלי?</h2>
+    <h2>
+    <form action="/" method="post" enctype="multipart/form-data">
+        <label for="csv_file">
+          הכל מוכן! הנה קובץ הצריכה שלי כפי שהגיע מחברת החשמל:
+        </label>
+        <input type="file" name="csv_file" id="csv_file" accept=".csv">
+
+        <input type="submit" value="שלח">
+    </form>
+    </h2>
+
+    <h2>רגע, איך משיגים את קובץ הצריכה שלי?</h2>
       <ol>
         <li>
           קוראים על

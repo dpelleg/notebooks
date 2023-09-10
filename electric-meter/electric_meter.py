@@ -8,6 +8,8 @@ import json
 from functools import lru_cache
 from pyluach import dates
 from datetime import timedelta
+import io
+import re
 import unittest
 
 with open('data/conf.json', 'r') as json_file:
@@ -15,6 +17,8 @@ with open('data/conf.json', 'r') as json_file:
 
 kwh_rate = conf['kwh_rate']
 kwh_rate_date = conf['kwh_rate_date']
+
+_header_pattern = re.compile(r'^\s*"?Interval starting"?,"?Consumption, kWh"?\s*$')
 
 # TAOZ definitions - https://www.iec.co.il/content/tariffs/contentpages/taozb-namuch
 month_to_season = {
@@ -32,8 +36,48 @@ month_to_season = {
     12: "winter"
 }
 
+def file_contains_header(file, header=_header_pattern):
+    with open(file, 'r', encoding='UTF-8') as f:
+        while True:
+            line = f.readline()
+            if not line:
+                return False
+            if header.match(line):
+                return True
+    return False
+
+def read_file_from_header(file, header=_header_pattern):
+    max_lines = 100000
+    max_size_mb = 10
+
+    data_started = False
+    data_lines = []
+
+    line_count = 0
+    file_size = 0
+
+    with open(file, 'r', encoding='UTF-8') as f:
+        while True:
+            line = f.readline().strip()
+            if not line:
+                break
+            if header.match(line):
+                data_started = True
+                data_lines.append(line)
+            elif data_started:
+                data_lines.append(line)
+                line_count += 1
+                file_size += len(line)  # Add the length of the line to the file size
+                if line_count > max_lines or file_size > max_size_mb * (1024 * 1024):  # Convert max_size_mb to bytes
+                    raise ValueError("File exceeds the maximum allowed lines or size.")
+
+    csv_content = '\n'.join(data_lines)
+    if len(csv_content) > 0:
+        return pd.read_csv(io.StringIO(csv_content))
+    raise ValueError("Bad file contents")
+
 def read_data(fname):
-    meter = pd.read_csv(fname, skiprows=11)
+    meter = read_file_from_header(fname)
     meter.columns=['time', 'consumption']
     meter['time'] = pd.to_datetime(meter['time'], format='%d/%m/%Y %H:%M')
     meter.set_index('time', inplace=True)
@@ -407,10 +451,11 @@ class Test_meter(unittest.TestCase):
             self.assertEqual(computed[i], expected[i])
 
 if __name__ == '__main__':
-    if True:
+    if False:
         unittest.main()
     else:
-        meter = read_data('data/meter.csv')
+        meter = read_data('data/1694094031_9_532da2ca.csv')
+        #meter = read_data('data/dirty1.csv')
         costs, conf = compute_costs(meter)
         print(costs)
         print(conf)
