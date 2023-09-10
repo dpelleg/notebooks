@@ -146,6 +146,12 @@ def upload_form():
                     kwh_rate=kwh_rate,
                     kwh_rate_date=kwh_rate_date,
                     taoz_rate_date=taoz_rate_date,
+                    taoz_summer_low=conf['taoz']['summer']['low_price'],
+                    taoz_summer_high=conf['taoz']['summer']['high_price'],
+                    taoz_winter_low=conf['taoz']['winter']['low_price'],
+                    taoz_winter_high=conf['taoz']['winter']['high_price'],
+                    taoz_transition_low=conf['taoz']['transition']['low_price'],
+                    taoz_transition_high=conf['taoz']['transition']['high_price'],
                     )
             except Exception as e:
                 if app.debug:
