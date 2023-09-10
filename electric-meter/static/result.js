@@ -112,9 +112,11 @@ function updateTable() {
         const cellValue = parseFloat(cell.getAttribute("data-value"));
         const newValue = (cellValue + inputValue).toFixed(2);
         if (cell.classList.contains("optional")) {
+          cell.innerText = cellValue;
           cell.style.visibility = "visible";
+        } else {
+          cell.innerText = newValue;
         }
-        cell.innerText = newValue;
     });
 
     decorateMinMaxCells(table)
