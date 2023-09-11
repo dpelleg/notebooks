@@ -46,6 +46,13 @@ def file_contains_header(file, header=_header_pattern):
                 return True
     return False
 
+def first_non_digit_char(input_string):
+    match = re.match(r'("?)(\d*)(\D)', input_string)
+    if match:
+        return match.group(3)
+    else:
+        return None  # No non-digit character found
+
 def read_file_from_header(file, header=_header_pattern):
     max_lines = 100000
     max_size_mb = 10
@@ -55,6 +62,7 @@ def read_file_from_header(file, header=_header_pattern):
 
     line_count = 0
     file_size = 0
+    date_format = None
 
     with open(file, 'r', encoding='UTF-8') as f:
         while True:
@@ -65,6 +73,12 @@ def read_file_from_header(file, header=_header_pattern):
                 data_started = True
                 data_lines.append(line)
             elif data_started:
+                if date_format is None:
+                    sep = first_non_digit_char(line)
+                    if sep == '-':
+                        date_format = '%d-%m-%y %H:%M'
+                    elif sep == '/':
+                        date_format = '%d/%m/%Y %H:%M'
                 data_lines.append(line)
                 line_count += 1
                 file_size += len(line)  # Add the length of the line to the file size
@@ -73,13 +87,13 @@ def read_file_from_header(file, header=_header_pattern):
 
     csv_content = '\n'.join(data_lines)
     if len(csv_content) > 0:
-        return pd.read_csv(io.StringIO(csv_content))
+        return pd.read_csv(io.StringIO(csv_content)), date_format
     raise ValueError("Bad file contents")
 
 def read_data(fname):
-    meter = read_file_from_header(fname)
+    meter, date_format = read_file_from_header(fname)
     meter.columns=['time', 'consumption']
-    meter['time'] = pd.to_datetime(meter['time'], format='%d/%m/%Y %H:%M')
+    meter['time'] = pd.to_datetime(meter['time'], format=date_format)
     meter.set_index('time', inplace=True)
     meter = meter.resample('1H').sum()
     locale.setlocale(locale.LC_ALL, 'he_IL')
@@ -480,7 +494,8 @@ if __name__ == '__main__':
     if False:
         unittest.main()
     else:
-        meter = read_data('data/1694094031_9_532da2ca.csv')
+        meter = read_data('uploads/1694378597_9_169c543f.csv')
+#        meter = read_data('data/1694094031_9_532da2ca.csv')
         #meter = read_data('data/dirty1.csv')
         costs, conf = compute_costs(meter)
         print(costs)
