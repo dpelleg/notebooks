@@ -91,7 +91,26 @@ def read_file_from_header(file, header=_header_pattern):
     raise ValueError("Bad file contents")
 
 def read_data(fname):
-    meter, date_format = read_file_from_header(fname)
+
+    def reformat_date_string(date_str):
+        if isinstance(date_str, str) and '/' in date_str:
+            match = re.match(r'(\d{2}/\d{2}/\d{4} \d{2}:\d{2})', date_str)
+            if match:
+                original_date = match.group(1)
+                new_date = pd.to_datetime(original_date, format='%d/%m/%Y %H:%M').strftime('%Y-%d-%m %H:%M:%S')
+                return date_str.replace(original_date, new_date)
+
+        return str(date_str)
+
+    if fname.endswith('.csv'):
+        meter, date_format = read_file_from_header(fname)
+    elif fname.endswith('.xlsx'):
+        meter = pd.read_excel(fname, skiprows=11, dtype={'Interval starting':object, 'Consumption, kWh':object})
+        colname = meter.columns[0]
+        meter[colname] = pd.Series(meter[colname].apply(reformat_date_string), dtype=str)
+        date_format='%Y-%d-%m %H:%M:%S'
+    else:
+        raise ValueError('Unknown file type')
     meter.columns=['time', 'consumption']
     meter['time'] = pd.to_datetime(meter['time'], format=date_format)
     meter.set_index('time', inplace=True)
@@ -494,7 +513,8 @@ if __name__ == '__main__':
     if False:
         unittest.main()
     else:
-        meter = read_data('uploads/1694378597_9_169c543f.csv')
+        meter = read_data('uploads/was-excel.xlsx')
+#        meter = read_data('uploads/1694378597_9_169c543f.csv')
 #        meter = read_data('data/1694094031_9_532da2ca.csv')
         #meter = read_data('data/dirty1.csv')
         costs, conf = compute_costs(meter)
