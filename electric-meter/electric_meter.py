@@ -235,6 +235,26 @@ def electra_power(df):
 def electra_hitec(df):
     return apply_filter(df, 8, lambda x:filter_hour_or(x, 23, 17))
 
+# Cellcom sources:
+# https://cellcom.co.il/production/Private/1/energy3/
+def cellcom_flat(df):
+    # Flat 5%
+    return pd.Series(5, index=df.index)
+
+def cellcom_home_office(df):
+    # 15% off Sun-Thu from 7:00 to 17:00
+    return apply_filter(df, 15, lambda x: (~filter_days(x, ['Friday', 'Saturday'])) & filter_hour_and(x, 7, 17))
+
+def cellcom_nighttime(df):
+    # 20% off Sun-Thu 22:00 till 7:00 next morning
+    def filter_sun_thu_night(x):
+        return (~filter_days(x, ['Friday', 'Saturday']) & filter_hour_and(x, 22, 24))
+
+    def filter_mon_fri_morning(x):
+        return (~filter_days(x, ['Saturday', 'Sunday']) & filter_hour_and(x, 0, 7))
+
+    return apply_filter(df, 20, lambda x:filter_sun_thu_night(x) | filter_mon_fri_morning(x))
+
 # This is the base rate
 def no_discount(df):
     return pd.Series(0, index=df.index)
@@ -258,8 +278,11 @@ schedule_xlat = {
     'pazgas_weekend' : 'פזגז סופ״ש',
     'pazgas_nighttime' : 'פזגז לילה',
     'amisragas_unlimited' : 'אמישראגז',
-    'electra_power' : 'אלקטרה פאואר',
+    'electra_power' : '5% אלקטרה פאואר',
     'electra_hitec' : 'אלקטרה הייטק',
+    'cellcom_flat' : 'סלקום 5%',
+    'cellcom_home_office' : 'סלקום מהבית',
+    'cellcom_nighttime' : 'סלקום לילה',
     'taoz1' : 'תעו״ז חד-חודשי',
     'taoz2' : 'תעו״ז דו-חודשי',
 }
@@ -274,6 +297,9 @@ schedules = [
     amisragas_unlimited,
     electra_power,
     electra_hitec,
+    cellcom_flat,
+    cellcom_home_office,
+    cellcom_nighttime,
     taoz1,
     taoz2
 ]
