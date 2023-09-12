@@ -156,7 +156,7 @@ def upload_form():
             except Exception as e:
                 if app.debug:
                     app.logger.warning(e)
-                return render_template('noresult.html')
+                return render_template('noresult.html', msg=str(e))
 
     return render_template('upload_form.html')
 
