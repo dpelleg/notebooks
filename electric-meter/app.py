@@ -99,7 +99,7 @@ def upload_form():
         if not is_valid_city(city):
             return "Invalid input for city. Please provide a valid city name."
 
-        if file and file.filename.endswith('.csv'):
+        if file and file.filename.endswith((".csv", ".xlsx")):
             # Perform rate limiting
             ip = request.remote_addr
             if not rate_limit(ip) or not ip_rate_limit(ip):
