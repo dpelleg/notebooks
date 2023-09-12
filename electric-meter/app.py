@@ -41,10 +41,10 @@ def ip_rate_limit(key):
 
 def generate_unique_filename(filename):
     timestamp = int(time.time())
-    random_string = os.urandom(4).hex()
+    random_string = os.urandom(2).hex()
     process_id = os.getpid()
     _, extension = os.path.splitext(filename)
-    unique_filename = f"{timestamp}_{process_id}_{random_string}{extension}"
+    unique_filename = f"{random_string}_{timestamp}_{process_id}{extension}"
     return unique_filename
 
 # Function to validate num_people
