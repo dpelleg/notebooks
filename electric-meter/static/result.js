@@ -27,9 +27,74 @@ function styleTableRows(table) {
   }
 }
 
+function addSumRow(table) {
+  // Check if a row for sums already exists
+  let sumRow = table.querySelector('.sum-row');
+  let already_has_sum_row = 1
+
+  if (!sumRow) {
+    already_has_sum_row = 0
+    // If it doesn't exist, create a new row for sums
+    sumRow = table.insertRow(-1);
+    sumRow.classList.add('sum-row'); // Add a class to identify the sum row
+
+    // Add a "sum" cell in the first column
+    const sumCell = sumRow.insertCell(0);
+    const sumText = document.createElement('strong');
+    sumText.textContent = "סכום";
+    sumCell.appendChild(sumText);
+  }
+
+  // Get the number of columns in the table
+  const numColumns = table.rows[0].cells.length;
+
+  // Create an array to store the column sums, initialized to 0
+  const columnSums = new Array(numColumns).fill(0);
+
+  // Iterate through each row in the table, starting from the second row (index 1)
+  for (let i = 1; i < table.rows.length - already_has_sum_row; i++) {
+    const row = table.rows[i];
+
+    // Iterate through each cell in the row, starting from the second cell (index 1)
+    for (let j = 1; j < numColumns; j++) {
+      const cell = row.cells[j];
+
+      if (cell) {  // Parse the cell's content as a number
+        const cellValue = parseFloat(cell.textContent);
+
+        // Check if the parsed value is a number
+        if (!isNaN(cellValue)) {
+          // Add the numeric value to the corresponding column sum
+          columnSums[j] += cellValue;
+        }
+      }
+    }
+  }
+
+  // Update the existing sum row with the updated column sums or set to blank if not numeric
+  for (let i = 1; i < numColumns; i++) {
+    let sumCell = sumRow.cells[i];
+    if(!sumCell) {
+      sumCell = sumRow.insertCell(i);
+    }
+
+    if (!isNaN(columnSums[i])) {
+      // Update the column sum if it's numeric and not 0
+      sumCell.textContent = columnSums[i] !== 0 ? columnSums[i].toFixed(2) : '';
+    } else {
+      // Set to blank if not numeric
+      sumCell.textContent = '';
+    }
+  }
+}
+
 function decorateMinMaxCells(table) {
   // Check if the table element exists
   if (table) {
+
+    // create or update a row of sums
+    addSumRow(table)
+
     // Get all the rows in the table
     var rows = table.querySelectorAll('tr');
 
