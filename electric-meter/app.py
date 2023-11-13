@@ -136,6 +136,7 @@ def upload_form():
                 result = result.to_html()
                 # format into readable units
                 kwh_rate = 100*conf['kwh_rate']     # Agorot to Shekel
+                kwh_rate = f"{kwh_rate:.2f}"        # 100 * 0.5134 = 51.3399999999
                 kwh_rate_date = str_month_and_year(conf['kwh_rate_date'])
                 taoz_rate_date = str_month_and_year(conf['taoz_rate_date'])
 
