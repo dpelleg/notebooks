@@ -530,7 +530,7 @@ def test_holidays():
             print(f"{dd}/{m}/{y} {holiday}")
 
 if __name__ == '__main__':
-    if False:
+    if True:
         #test_holidays()
         unittest.main()
     else:
