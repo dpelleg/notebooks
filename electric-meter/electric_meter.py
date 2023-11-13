@@ -18,7 +18,8 @@ with open('data/conf.json', 'r') as json_file:
 kwh_rate = conf['kwh_rate']
 kwh_rate_date = conf['kwh_rate_date']
 
-_header_pattern = re.compile(r'^\s*"?Interval starting"?,"?Consumption, kWh"?\s*$')
+_header_pattern = re.compile(r'.*מועד תחילת הפעימה.*')
+_old_header_pattern = re.compile(r'^\s*"?Interval starting"?,"?Consumption, kWh"?\s*$')
 
 # TAOZ definitions - https://www.iec.co.il/content/tariffs/contentpages/taozb-namuch
 month_to_season = {
@@ -53,7 +54,7 @@ def first_non_digit_char(input_string):
     else:
         return None  # No non-digit character found
 
-def read_file_from_header(file, header=_header_pattern):
+def read_file_from_header(file, header=_header_pattern, old_header=_old_header_pattern):
     max_lines = 100000
     max_size_mb = 10
 
@@ -73,6 +74,10 @@ def read_file_from_header(file, header=_header_pattern):
                 data_started = True
                 data_lines.append(line)
             elif data_started:
+                if re.match(r'[" ,]+$', line):   # empty line, sometimes present right after the header
+                    continue
+                if old_header.match(line):       # header line which also appeared in the past, now usually not
+                    continue
                 if date_format is None:
                     sep = first_non_digit_char(line)
                     if sep == '-':
@@ -111,7 +116,12 @@ def read_data(fname):
         date_format='%Y-%d-%m %H:%M:%S'
     else:
         raise ValueError('Unknown file type')
-    meter.columns=['time', 'consumption']
+    if len(meter.columns) == 2:
+        meter.columns=['time', 'consumption']
+    else:
+        meter.columns=['date', 'time', 'consumption']
+        meter['time'] = meter.apply(lambda x: " ".join([x['date'], x['time']]), axis=1)
+        meter.drop(columns='date', inplace=True)
     meter['time'] = pd.to_datetime(meter['time'], format=date_format)
     meter.set_index('time', inplace=True)
     meter = meter.resample('1H').sum()
@@ -509,11 +519,24 @@ class Test_meter(unittest.TestCase):
         for i in range(len(expected)):
             self.assertEqual(computed[i], expected[i])
 
+def test_holidays():
+    y = 2023
+    m = 9
+    for d in range(29):
+        dd = d+1
+        hd=dates.GregorianDate(y, m, dd)
+        holiday = hhi_holiday(hd)
+        if holiday:
+            print(f"{dd}/{m}/{y} {holiday}")
+
 if __name__ == '__main__':
     if False:
+        #test_holidays()
         unittest.main()
     else:
-        meter = read_data('uploads/was-excel.xlsx')
+        #meter = read_data('uploads/was-excel.xlsx')
+        meter = read_data('uploads/meter_23141644_LP_03-10-2023.csv')
+#        meter = read_data('uploads/meter_23141644_LP_12-11-2023.csv')
 #        meter = read_data('uploads/1694378597_9_169c543f.csv')
 #        meter = read_data('data/1694094031_9_532da2ca.csv')
         #meter = read_data('data/dirty1.csv')
