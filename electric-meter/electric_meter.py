@@ -279,6 +279,16 @@ def electra_power(df):
 def electra_hitec(df):
     return apply_filter(df, 8, lambda x:filter_hour_or(x, 23, 17))
 
+def electra_nighttime(df):
+    # 20% off Sun-Thu 23:00 till 7:00 next morning
+    def filter_sun_thu_night(x):
+        return (~filter_days(x, ['Friday', 'Saturday']) & filter_hour_and(x, 23, 24))
+
+    def filter_mon_fri_morning(x):
+        return (~filter_days(x, ['Saturday', 'Sunday']) & filter_hour_and(x, 0, 7))
+
+    return apply_filter(df, 20, lambda x:filter_sun_thu_night(x) | filter_mon_fri_morning(x))
+
 # Cellcom sources:
 # https://cellcom.co.il/production/Private/1/energy3/
 def cellcom_flat(df):
@@ -324,6 +334,7 @@ schedule_xlat = {
     'amisragas_unlimited' : 'אמישראגז',
     'electra_power' : '5% אלקטרה פאואר',
     'electra_hitec' : 'אלקטרה הייטק',
+    'electra_nighttime' : 'אלקטרה לילה',
     'cellcom_flat' : 'סלקום 5%',
     'cellcom_home_office' : 'סלקום מהבית',
     'cellcom_nighttime' : 'סלקום לילה',
@@ -341,6 +352,7 @@ schedules = [
     amisragas_unlimited,
     electra_power,
     electra_hitec,
+    electra_nighttime,
     cellcom_flat,
     cellcom_home_office,
     cellcom_nighttime,
