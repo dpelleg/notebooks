@@ -107,9 +107,10 @@ def read_data(fname):
 
         return str(date_str)
 
-    if fname.endswith('.csv'):
+    m = re.match('(.*)(\.)([^.]*$)', fname)
+    if m is None or (m.group(3) in ['csv']):   # ends in .csv or no dot at all
         meter, date_format = read_file_from_header(fname)
-    elif fname.endswith('.xlsx'):
+    elif m.group(3) in ['xlsx']:
         meter = pd.read_excel(fname, skiprows=11, dtype={'Interval starting':object, 'Consumption, kWh':object})
         colname = meter.columns[0]
         meter[colname] = pd.Series(meter[colname].apply(reformat_date_string), dtype=str)
@@ -530,12 +531,12 @@ def test_holidays():
             print(f"{dd}/{m}/{y} {holiday}")
 
 if __name__ == '__main__':
-    if True:
+    if False:
         #test_holidays()
         unittest.main()
     else:
-        #meter = read_data('uploads/was-excel.xlsx')
-        meter = read_data('uploads/meter_23141644_LP_03-10-2023.csv')
+        meter = read_data('uploads/was-excel.xlsx')
+        #meter = read_data('uploads/ishai')
 #        meter = read_data('uploads/meter_23141644_LP_12-11-2023.csv')
 #        meter = read_data('uploads/1694378597_9_169c543f.csv')
 #        meter = read_data('data/1694094031_9_532da2ca.csv')
