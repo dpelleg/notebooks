@@ -1,13 +1,13 @@
 {
-    "kwh_rate": 0.5134,
-    "kwh_rate_date": "2023-04-01",
-    "taoz_rate_date": "2023-04-01",
-    "taoz1_fixed_cost": 210.98,
-    "taoz2_fixed_cost": 37.91,
+    "kwh_rate": 0.5252,
+    "kwh_rate_date": "2024-02-01",
+    "taoz_rate_date": "2024-02-01",
+  "taoz1_fixed_cost": 226.74,
+    "taoz2_fixed_cost": 40.74,
     "taoz": {
       "summer": {
-        "low_price": 0.4115,
-        "high_price": 1.4131,
+        "low_price": 0.4188,
+        "high_price": 1.4211,
         "weekday_high_hours": {
           "start": 17,
           "end": 23
@@ -18,8 +18,8 @@
         }
       },
       "winter": {
-        "low_price": 0.3576,
-        "high_price": 0.9810,
+        "low_price": 0.3612,
+        "high_price": 0.9961,
         "weekday_high_hours": {
           "start": 17,
           "end": 22
@@ -30,8 +30,8 @@
         }
       },
       "transition": {
-        "low_price": 0.3491,
-        "high_price": 0.3917,
+        "low_price": 0.3526,
+        "high_price": 0.3961,
         "weekday_high_hours": {
           "start": 17,
           "end": 22
