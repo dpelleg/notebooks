@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 import math
 
-import plotly.graph_objects as go
-import plotly.express as px
-import numpy as np
-import statsmodels.api as sm
+import pandas as pd
 
 datadir = '../data/'
 
-def read_file_helper(fname, enc='iso8859-8'):
+def read_file_helper(fname, enc='iso8859-8', sep='|', low_memory=True):
     fd = open(fname, encoding=enc, errors='replace')
-    df = pd.read_csv(fd, sep='|')
+    df = pd.read_csv(fd, sep=sep, low_memory=low_memory)
     return df
 
 def add_model(df):
@@ -88,14 +82,19 @@ def trade_category(d):
         return 'נמכר תוך שנה'
     return 'נמכר תוך יותר משנה'
 
+def stringify_cols(df, cols=None):
+    if cols is None:
+        cols = ['mispar_rechev', 'degem_cd', 'tozeret_cd', 'shnat_yitzur']
+    for c in df.columns.intersection(cols):
+        df[c] = df[c].astype(str)
+
 # source : https://data.gov.il/dataset/private-and-commercial-vehicles
 
 def read_file(fname):
     fname = datadir + fname
     df = read_file_helper(fname)
 
-    for c in ['mispar_rechev', 'degem_cd', 'tozeret_cd', 'shnat_yitzur']:
-        df[c] = df[c].astype(str)
+    stringify_cols(df)
 
     df['test']= pd.to_datetime(df.mivchan_acharon_dt)
     df['test_expiry']= pd.to_datetime(df.tokef_dt)
@@ -112,6 +111,6 @@ def read_file(fname):
 def rev(s):
     return s[::-1]
 
-def stringify_cols(df, cols):
+def stringify_cols_old(df, cols):
     for c in cols:
         df[c] = df[c].astype(str)

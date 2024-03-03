@@ -129,6 +129,7 @@ def read_data(fname):
     locale.setlocale(locale.LC_ALL, 'he_IL')
     meter['date'] = meter.index.date
     meter['month'] = meter.index.month
+    meter['mday'] = meter.index.day
     meter['wday'] = meter.index.weekday
     meter['hour'] = meter.index.hour
     meter['wday_name'] = meter.index.day_name()
@@ -428,6 +429,10 @@ def compute_costs(df):
                 costs = cost
             else:
                 costs = pd.concat([costs, cost], axis=1)
+        if 'surplus generation' in meter.columns:
+            surplus = cost_by_month(meter[['timeperiod', 'surplus generation']])
+            costs = pd.concat([costs, surplus], axis=1)
+
 
     # make sure it's sorted
     costs.sort_index(ascending=True, inplace=True)
@@ -541,7 +546,8 @@ if __name__ == '__main__':
         #test_holidays()
         unittest.main()
     else:
-        meter = read_data('uploads/was-excel.xlsx')
+        #meter = read_data('uploads/was-excel.xlsx')
+        meter = read_data('uploads/meter_23141644_LP_01-03-2024.csv')
         #meter = read_data('uploads/ishai')
 #        meter = read_data('uploads/meter_23141644_LP_12-11-2023.csv')
 #        meter = read_data('uploads/1694378597_9_169c543f.csv')
