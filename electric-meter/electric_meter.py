@@ -253,18 +253,28 @@ def apply_filter(df, val, filter_func, default_val=0):
 
 # pazgas sources:
 # https://campaigns.pazgas.co.il/ele/
+# monthly fixed charge from: https://media.umbraco.io/pazgas/0jzo3t5k/תקנון-לקוחות-חשמל-מרץ-24.pdf
+
 
 def pazgas_daytime(df):
-    return apply_filter(df, 15, lambda x:filter_hour_and(x, 8, 16))
+    discount_pct = apply_filter(df, 15, lambda x:filter_hour_and(x, 8, 16))
+    fixed_cost = 29.9
+    return dict(discount_pct=discount_pct, fixed_cost=fixed_cost)
 
 def pazgas_nighttime(df):
-    return apply_filter(df, 15, lambda x:filter_hour_or(x, 23, 7))
+    discount_pct = apply_filter(df, 15, lambda x:filter_hour_or(x, 23, 7))
+    fixed_cost = 29.9
+    return dict(discount_pct=discount_pct, fixed_cost=fixed_cost)
 
 def pazgas_unlimited(df):
-    return pd.Series(5, index=df.index)
+    discount_pct = pd.Series(5, index=df.index)
+    fixed_cost = 29.9
+    return dict(discount_pct=discount_pct, fixed_cost=fixed_cost)
 
 def pazgas_weekend(df):
-    return apply_filter(df, 10, lambda x:filter_days(x, ['Friday', 'Saturday']))
+    discount_pct = apply_filter(df, 10, lambda x:filter_days(x, ['Friday', 'Saturday']))
+    fixed_cost = 29.9
+    return dict(discount_pct=discount_pct, fixed_cost=fixed_cost)
 
 # Amisragas sources:
 # https://lp.amisragas.co.il/electric/
@@ -283,6 +293,22 @@ def electra_hitec(df):
 def electra_nighttime(df):
     # 20% off 23:00 till 7:00 next morning
     return apply_filter(df, 20, lambda x:filter_hour_or(x, 23, 7))
+
+
+# partner sources:
+# https://www.partner.co.il/n/partnerpower/lobby
+
+def partner_flat(df):
+    # Flat 5%
+    return pd.Series(5, index=df.index)
+
+def partner_home_office(df):
+    # 15% off Sun-Thu from 8:00 to 17:00
+    return apply_filter(df, 15, lambda x: (~filter_days(x, ['Friday', 'Saturday'])) & filter_hour_and(x, 8, 17))
+
+def partner_nighttime(df):
+    # 20% off 00:00 till 6:00 next morning
+    return apply_filter(df, 20, lambda x:filter_hour_and(x, 0, 6))
 
 # Cellcom sources:
 # https://cellcom.co.il/production/Private/1/energy3/
@@ -335,6 +361,9 @@ schedule_xlat = {
     'cellcom_nighttime' : 'סלקום לילה',
     'taoz1' : 'תעו״ז חד-חודשי',
     'taoz2' : 'תעו״ז דו-חודשי',
+    'partner_flat' : 'פרטנר 5%',
+    'partner_home_office' : 'פרטנר מהבית',
+    'partner_nighttime' : 'פרטנר לילה',
 }
 
 # a list of different cost schedules to consider
@@ -345,6 +374,9 @@ schedules = [
     pazgas_weekend,
     pazgas_nighttime,
     amisragas_unlimited,
+    partner_flat,
+    partner_home_office,
+    partner_nighttime,
     electra_power,
     electra_hitec,
     electra_nighttime,
@@ -396,10 +428,15 @@ def cost_by_schedule(df, schedule):
         cost_items, fixed_cost_per_timeperiod = schedule(df)
         cost_items = cost_items * df['consumption']
     else:
-        discount_pct = schedule(df)     # these schedules return the discount percent per reading (0 if no discount)
+        materialized_schedule = schedule(df)     # these schedules return the discount percent per reading (0 if no discount)
+        if isinstance(materialized_schedule, dict):
+            discount_pct = materialized_schedule['discount_pct']
+            fixed_cost_per_timeperiod = materialized_schedule.get('fixed_cost', 0)
+        else:
+            discount_pct = materialized_schedule
+            fixed_cost_per_timeperiod = 0
         multiplier = 1. - discount_pct/100.
         cost_items = df['consumption'] * kwh_rate * multiplier
-        fixed_cost_per_timeperiod = 0
     cost = pd.DataFrame(data={
         'cost' : cost_items,
         'timeperiod' : df['timeperiod']},
