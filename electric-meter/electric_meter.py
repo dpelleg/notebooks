@@ -267,7 +267,7 @@ def pazgas_nighttime(df):
     return dict(discount_pct=discount_pct, fixed_cost=fixed_cost)
 
 def pazgas_unlimited(df):
-    discount_pct = pd.Series(5, index=df.index)
+    discount_pct = pd.Series(7, index=df.index)
     fixed_cost = 29.9
     return dict(discount_pct=discount_pct, fixed_cost=fixed_cost)
 
@@ -288,6 +288,7 @@ def electra_power(df):
     return pd.Series(5, index=df.index)
 
 def electra_hitec(df):
+    # 8% off 23:00 till 17:00 next morning
     return apply_filter(df, 8, lambda x:filter_hour_or(x, 23, 17))
 
 def electra_nighttime(df):
