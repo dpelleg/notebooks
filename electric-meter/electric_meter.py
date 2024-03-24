@@ -486,7 +486,8 @@ def style_table(df):
     styled_df = df.style.format('{:.2f}').highlight_min(color='#b1d77a', axis=1).highlight_max(color='#f287d0', axis=1)
     styled_df.set_table_attributes('class="cost-table"')
 
-    classes = pd.DataFrame("optional", index=df.index, columns=[schedule_xlat[t] for t in ['taoz1', 'taoz2']])
+    # mark the columns where the total is hidden until fixed costs are input
+    classes = pd.DataFrame("optional", index=df.index, columns=[schedule_xlat[t] for t in ['taoz1', 'taoz2', 'pazgas_daytime', 'pazgas_unlimited', 'pazgas_weekend', 'pazgas_nighttime']])
 
     styled_df.set_td_classes(classes)
 
