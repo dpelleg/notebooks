@@ -259,7 +259,6 @@ def apply_filter(df, val, filter_func, default_val=0):
 def pazgas_daytime(df):
     discount_pct = apply_filter(df, 15, lambda x:filter_hour_and(x, 8, 16))
     fixed_cost = 29.9
-    return dict(discount_pct=discount_pct, fixed_cost=fixed_cost)
 
 def pazgas_nighttime(df):
     discount_pct = apply_filter(df, 15, lambda x:filter_hour_or(x, 23, 7))
@@ -275,6 +274,11 @@ def pazgas_weekend(df):
     discount_pct = apply_filter(df, 10, lambda x:filter_days(x, ['Friday', 'Saturday']))
     fixed_cost = 29.9
     return dict(discount_pct=discount_pct, fixed_cost=fixed_cost)
+
+# Bezeq sources:
+# https://www.bezeq.co.il/
+def bezeq_unlimited(df):
+    return pd.Series(7, index=df.index)
 
 # Amisragas sources:
 # https://lp.amisragas.co.il/electric/
@@ -365,15 +369,14 @@ schedule_xlat = {
     'partner_flat' : 'פרטנר 5%',
     'partner_home_office' : 'פרטנר מהבית',
     'partner_nighttime' : 'פרטנר לילה',
+    'bezeq_unlimited' : 'בזק',
 }
 
 # a list of different cost schedules to consider
 schedules = [
     no_discount,
-    pazgas_daytime,
     pazgas_unlimited,
     pazgas_weekend,
-    pazgas_nighttime,
     amisragas_unlimited,
     partner_flat,
     partner_home_office,
@@ -385,7 +388,8 @@ schedules = [
     cellcom_home_office,
     cellcom_nighttime,
     taoz1,
-    taoz2
+    taoz2,
+    bezeq_unlimited,
 ]
 
 ## TAOZ
@@ -487,7 +491,7 @@ def style_table(df):
     styled_df.set_table_attributes('class="cost-table"')
 
     # mark the columns where the total is hidden until fixed costs are input
-    classes = pd.DataFrame("optional", index=df.index, columns=[schedule_xlat[t] for t in ['taoz1', 'taoz2', 'pazgas_daytime', 'pazgas_unlimited', 'pazgas_weekend', 'pazgas_nighttime']])
+    classes = pd.DataFrame("optional", index=df.index, columns=[schedule_xlat[t] for t in ['taoz1', 'taoz2', 'pazgas_unlimited', 'pazgas_weekend']])
 
     styled_df.set_td_classes(classes)
 
