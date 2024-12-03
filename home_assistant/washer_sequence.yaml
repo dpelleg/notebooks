@@ -1,0 +1,42 @@
+alias: washer sequence
+description: Detect several vibration (rinse/spin) events close together
+triggers:
+  - type: vibration
+    device_id: XXX
+    entity_id: YYY
+    domain: binary_sensor
+    trigger: device
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 35
+  - event_type: timer.finished
+    event_data:
+      entity_id: timer.washer_sequence
+    id: timer_end
+    trigger: event
+conditions: []
+actions:
+  - if:
+      - condition: trigger
+        id:
+          - timer_end
+    then:
+      - action: counter.reset
+        metadata: {}
+        data: {}
+        target:
+          entity_id: counter.washer_sequence
+    else:
+      - action: counter.increment
+        metadata: {}
+        data: {}
+        target:
+          entity_id: counter.washer_sequence
+      - action: timer.start
+        metadata: {}
+        data:
+          duration: "00:30:00"
+        target:
+          entity_id: timer.washer_sequence
+mode: single

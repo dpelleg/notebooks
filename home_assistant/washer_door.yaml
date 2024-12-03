@@ -1,0 +1,85 @@
+alias: washer door
+description: Detect washing machine spin cycle, and door open afterwards
+triggers:
+  - entity_id:
+      - binary_sensor.XXX_vibration
+    to: "on"
+    id: any_vibration
+    trigger: state
+  - event_type: timer.finished
+    event_data:
+      entity_id: timer.monitor_after_washer_spin
+    id: monitor_end
+    trigger: event
+  - type: vibration
+    device_id: YYY
+    entity_id: ZZZ
+    domain: binary_sensor
+    trigger: device
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    id: long_vibration
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: long_vibration
+          - condition: numeric_state
+            entity_id: counter.washer_sequence
+            above: 1
+        sequence:
+          - data:
+              message: washer spin ended
+            action: notify.mobile_app
+          - target:
+              entity_id: timer.monitor_after_washer_spin
+            data:
+              duration: "2:00:00"
+            action: timer.start
+          - action: persistent_notification.create
+            metadata: {}
+            data:
+              message: washer spin ended
+          - type: turn_on
+            device_id: AAA
+            entity_id: BBB
+            domain: switch
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: trigger
+                id:
+                  - any_vibration
+              - condition: state
+                entity_id: timer.monitor_after_washer_spin
+                state: active
+        sequence:
+          - data:
+              message: washer door open
+            action: notify.mobile_app
+          - target:
+              entity_id: timer.monitor_after_washer_spin
+            action: timer.cancel
+            data: {}
+          - action: persistent_notification.create
+            metadata: {}
+            data:
+              message: washer door open
+              title: wash door
+          - type: turn_off
+            device_id: AAA
+            entity_id: BBB
+            domain: switch
+  - if:
+      - condition: trigger
+        id:
+          - monitor_end
+    then:
+      - type: turn_off
+        device_id: AAA
+        entity_id: BBB
+        domain: switch
+mode: single
