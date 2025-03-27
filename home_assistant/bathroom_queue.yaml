@@ -1,0 +1,69 @@
+alias: Bathroom stress level
+description: Single press increments counter (modulo 4), double press announces value
+triggers:
+  - domain: mqtt
+    device_id: AAA
+    type: action
+    subtype: button_1_single
+    metadata: {}
+    trigger: device
+    id: single_press
+  - domain: mqtt
+    device_id: AAA
+    type: action
+    subtype: button_1_double
+    trigger: device
+    id: double_press
+conditions:
+  - condition: template
+    value_template: |2-
+        {% set last = states.automation.bathroom_stress_level.attributes.last_triggered %} {% if last == None %}
+        true
+      {% else %}
+        {% set diff = as_timestamp(now()) - as_timestamp(last) %}
+        {{ diff > 0.5 }}
+      {% endif %}
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: single_press
+        sequence:
+          - target:
+              entity_id: counter.bathroom_stress
+            action: counter.increment
+            data: {}
+          - condition: template
+            value_template: "{{ states('counter.bathroom_stress') | int >= 4 }}"
+          - action: counter.reset
+            metadata: {}
+            data: {}
+            target:
+              entity_id: counter.bathroom_stress
+      - conditions:
+          - condition: trigger
+            id: double_press
+        sequence:
+          - action: tts.speak
+            metadata: {}
+            data:
+              cache: true
+              media_player_entity_id: media_player.music_player_daemon
+              message: >
+                {% set count = states('counter.bathroom_stress') | int %} The
+                current level is {{ count }}
+            target:
+              entity_id: tts.google_translate_en_ie
+  - action: script.led_stress_level
+    metadata: {}
+    data:
+      level: "{{ states('counter.bathroom_stress') | int }}"
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 1
+  - action: script.led_stress_level
+    metadata: {}
+    data:
+      level: "{{ states('counter.bathroom_stress') | int }}"
+mode: single
