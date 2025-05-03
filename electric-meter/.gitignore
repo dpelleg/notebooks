@@ -4,3 +4,4 @@ data/*csv
 uploads/uploads.json
 /.idea/electric-meter.iml
 /.idea/inspectionProfiles/profiles_settings.xml
+/.idea/workspace.xml
