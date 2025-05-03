@@ -2,3 +2,5 @@ secrets.json
 uploads/
 data/*csv
 uploads/uploads.json
+/.idea/electric-meter.iml
+/.idea/inspectionProfiles/profiles_settings.xml

@@ -10,3 +10,4 @@ mudguard/self/activities.csv
 mudguard/conf.json
 secrets/
 charts/data/noga/
+misc/beeps/*.wav
